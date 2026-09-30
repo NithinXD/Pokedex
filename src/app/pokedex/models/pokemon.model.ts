@@ -4,4 +4,5 @@ export interface Pokemon {
   types?: string[];
   stats?: { name: string; value: number }[];
   abilities?: string[];
+  description?: string;
 }

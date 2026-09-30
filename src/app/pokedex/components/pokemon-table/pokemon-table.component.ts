@@ -40,6 +40,18 @@ export class PokemonTableComponent {
     { name: 'Team 1', pokemon: new Array(6).fill(undefined) }
   ]);
   readonly activeTeamIndex = signal<number>(0);
+
+  readonly viewMode = signal<'dex' | 'grid' | 'table'>('dex');
+  readonly pageSize = signal<number>(50);
+  readonly currentPage = signal<number>(1);
+  readonly paginatedPokemonList = computed(() => {
+    const list = this.pokemonList();
+    if (this.viewMode() === 'dex') return list;
+    const size = this.pageSize();
+    const page = this.currentPage();
+    return list.slice((page - 1) * size, page * size);
+  });
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.pokemonList().length / this.pageSize())));
   
   readonly activeModal = signal<'search' | 'teamList' | 'createTeam' | 'renameTeam' | null>(null);
   readonly activeSlotForSearch = signal<number | null>(null);
@@ -288,9 +300,16 @@ export class PokemonTableComponent {
   
   onSortChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.store.setSortBy(select.value as 'id' | 'name');
+    this.store.setSortBy(select.value as any);
   }
   
+  setViewMode(mode: 'dex' | 'grid' | 'table'): void { this.viewMode.set(mode); this.currentPage.set(1); }
+  setPageSize(event: Event): void { const s = (event.target as HTMLSelectElement).value; this.pageSize.set(Number(s)); this.currentPage.set(1); }
+  nextPage(): void { if (this.currentPage() < this.totalPages()) this.currentPage.set(this.currentPage() + 1); }
+  prevPage(): void { if (this.currentPage() > 1) this.currentPage.set(this.currentPage() - 1); }
+  getStat(p: Pokemon, name: string): number { return p.stats?.find(s => s.name === name)?.value || 0; }
+  getBST(p: Pokemon): number { return p.stats?.reduce((sum, s) => sum + s.value, 0) || 0; }
+
   onOrderChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.store.setSortOrder(select.value as 'asc' | 'desc');
@@ -303,20 +322,12 @@ export class PokemonTableComponent {
     this.store.openDetailPanel(current?.id === pokemon.id ? null : pokemon);
   }
 
-  getPokemonDescription(name: string): string {
-    const descriptions: Record<string, string> = {
-      bulbasaur: 'A strange seed was planted on its back at birth. The plant sprouts and grows with this POKÉMON.',
-      ivysaur: 'When the bulb on its back grows large, it appears to lose the ability to stand on its hind legs.',
-      venusaur: 'The plant blooms when it absorbs solar energy. It stays on the move to seek sunlight.',
-      charmander: 'Obviously prefers hot places. When it rains, steam is said to spout from the tip of its tail.',
-      charmeleon: 'It lashes its tail to knock down its foe. It then tears up the fallen opponent with sharp claws.',
-      charizard: 'It spits fire that is hot enough to melt boulders. Known to cause forest fires unintentionally.',
-      squirtle: 'After birth, its back swells and hardens into a shell. Powerfully sprays foam from its mouth.',
-      wartortle: 'It is recognized as a symbol of longevity. If its shell has algae on it, that WARTORTLE is very old.',
-      blastoise: 'It spouts jets of water from the rocket cannons on its shell. They can punch through thick steel.'
-    };
-
-    const key = name.toLowerCase();
-    return descriptions[key] || `A wild ${name.toUpperCase()} native to the Kanto region. Click "View Radar Chart" below to open base stats.`;
+  getPokemonDescription(pokemon: Pokemon | null): string {
+    if (!pokemon) return 'NO POK&#201;MON SELECTED';
+    if (pokemon.description) return pokemon.description;
+    return `A wild ${pokemon.name.toUpperCase()} native to the Kanto region. Click the "STATS" button above to view base stats.`;
   }
 }
+
+
+

@@ -26,6 +26,11 @@ export class PokedexApiService {
           pokemon_v2_pokemonabilities {
             pokemon_v2_ability { name }
           }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_pokemonspeciesflavortexts(where: {language_id: {_eq: 9}}, limit: 1) {
+              flavor_text
+            }
+          }
         }
       }
     `;
@@ -43,7 +48,8 @@ export class PokedexApiService {
           name: s.pokemon_v2_stat.name,
           value: s.base_stat
         })),
-        abilities: p.pokemon_v2_pokemonabilities?.map((a: any) => a.pokemon_v2_ability.name)
+        abilities: p.pokemon_v2_pokemonabilities?.map((a: any) => a.pokemon_v2_ability.name),
+        description: p.pokemon_v2_pokemonspecy?.pokemon_v2_pokemonspeciesflavortexts?.[0]?.flavor_text?.replace(/[\n\f\r]/g, ' ')
       })))
     );
   }
@@ -64,6 +70,11 @@ export class PokedexApiService {
           pokemon_v2_pokemonabilities {
             pokemon_v2_ability { name }
           }
+          pokemon_v2_pokemonspecy {
+            pokemon_v2_pokemonspeciesflavortexts(where: {language_id: {_eq: 9}}, limit: 1) {
+              flavor_text
+            }
+          }
         }
       }
     `;
@@ -83,7 +94,8 @@ export class PokedexApiService {
             name: s.pokemon_v2_stat.name,
             value: s.base_stat
           })),
-          abilities: p.pokemon_v2_pokemonabilities.map((a: any) => a.pokemon_v2_ability.name)
+          abilities: p.pokemon_v2_pokemonabilities.map((a: any) => a.pokemon_v2_ability.name),
+          description: p.pokemon_v2_pokemonspecy?.pokemon_v2_pokemonspeciesflavortexts?.[0]?.flavor_text?.replace(/[\n\f\r]/g, ' ')
         };
       })
     );

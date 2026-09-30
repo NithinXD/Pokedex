@@ -1,0 +1,71 @@
+      } @else if (viewMode() === 'grid') {
+        <div class="grid-view-container" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; background: #e0f8d0; border: 4px solid #8ba37a; border-radius: 8px; height: 500px; overflow-y: auto;">
+          @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+            <div class="pc-grid-item" (click)="selectPokemon(pokemon)" [class.selected]="activePokemon?.id === pokemon.id" style="width: 64px; height: 64px; background: rgba(255,255,255,0.5); border: 2px solid transparent; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+              <img [src]="get2dSpriteUrl(pokemon.id)" [alt]="pokemon.name" style="width: 48px; height: 48px; position: relative; z-index: 2;">
+              <span style="font-size: 8px; font-family: var(--font-game); text-transform: uppercase;">{{ pokemon.name | slice:0:8 }}</span>
+            </div>
+          }
+        </div>
+        <div class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+          <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+          <span style="font-family: var(--font-game); font-size: 10px;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+          <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+          <select (change)="setPageSize($event)" [value]="pageSize()" style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+      } @else {
+        <div class="table-view-container" style="padding: 16px; background: #fff; border: 4px solid #1a1a1a; border-radius: 8px; height: 500px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-family: var(--font-game); font-size: 8px; text-transform: uppercase;">
+            <thead style="background: #1a1a1a; color: #fff;">
+              <tr>
+                <th style="padding: 8px;">Sprite</th>
+                <th style="padding: 8px;">Name</th>
+                <th style="padding: 8px;">Types</th>
+                <th style="padding: 8px;">HP</th>
+                <th style="padding: 8px;">Atk</th>
+                <th style="padding: 8px;">Def</th>
+                <th style="padding: 8px;">SpA</th>
+                <th style="padding: 8px;">SpD</th>
+                <th style="padding: 8px;">Spe</th>
+                <th style="padding: 8px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+                <tr (click)="selectPokemon(pokemon)" [class.selected]="activePokemon?.id === pokemon.id" style="border-bottom: 2px solid #ddd; cursor: pointer;" [style.background]="activePokemon?.id === pokemon.id ? '#ffcb05' : 'transparent'">
+                  <td style="text-align: center;"><img [src]="get2dSpriteUrl(pokemon.id)" width="40" height="40"></td>
+                  <td style="text-align: center; font-weight: bold;">{{ pokemon.name }}</td>
+                  <td style="text-align: center;">
+                    <div style="display: flex; gap: 4px; justify-content: center;">
+                      @for (type of pokemon.types; track type) {
+                        <span class="type-badge" [attr.data-type]="type" style="transform: scale(0.7);">{{ type }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'hp') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'attack') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'defense') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'special-attack') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'special-defense') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'speed') }}</td>
+                  <td style="text-align: center; color: #dc0a2d;">{{ getBST(pokemon) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+          <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+          <span style="font-family: var(--font-game); font-size: 10px;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+          <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+          <select (change)="setPageSize($event)" [value]="pageSize()" style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+      }

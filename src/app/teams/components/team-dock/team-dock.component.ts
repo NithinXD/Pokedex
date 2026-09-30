@@ -25,6 +25,7 @@ export class TeamDockComponent {
   readonly openRenameModal = output<void>();
   readonly selectTeam = output<string>();
   readonly createTeam = output<void>();
+  readonly deleteTeam = output<void>();
   readonly nextTeam = output<void>();
   readonly prevTeam = output<void>();
   readonly openTeamList = output<void>();

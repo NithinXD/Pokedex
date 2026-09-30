@@ -1,4 +1,4 @@
-import { Injectable, inject, DestroyRef } from '@angular/core';
+﻿import { Injectable, inject, DestroyRef } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PokedexApiService } from '../services/pokedex-graphql.service';
@@ -10,7 +10,7 @@ export interface PokemonState {
   detailPanelPokemon: Pokemon | null;
   searchQuery: string;
   selectedType: string | null;
-  sortBy: 'id' | 'name';
+  sortBy: 'id' | 'name' | 'hp' | 'attack' | 'defense' | 'special-attack' | 'special-defense' | 'speed' | 'total';
   sortOrder: 'asc' | 'desc';
   isLoading: boolean;
   error: string | null;
@@ -80,7 +80,7 @@ export class PokemonStore {
     this.patchState({ selectedType: type });
   }
 
-  setSortBy(sortBy: 'id' | 'name'): void {
+  setSortBy(sortBy: 'id' | 'name' | 'hp' | 'attack' | 'defense' | 'special-attack' | 'special-defense' | 'speed' | 'total'): void {
     this.patchState({ sortBy });
   }
 
@@ -114,3 +114,5 @@ export class PokemonStore {
     this.state$.next({ ...this.state$.getValue(), ...partial });
   }
 }
+
+

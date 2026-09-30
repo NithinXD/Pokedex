@@ -26,6 +26,14 @@ export class PokemonSelectors {
               res = a.name.localeCompare(b.name);
             } else if (sortBy === 'id') {
               res = a.id - b.id;
+            } else if (sortBy === 'total') {
+              const aBST = a.stats?.reduce((sum, s) => sum + s.value, 0) || 0;
+              const bBST = b.stats?.reduce((sum, s) => sum + s.value, 0) || 0;
+              res = aBST - bBST;
+            } else {
+              const aStat = a.stats?.find(s => s.name === sortBy)?.value || 0;
+              const bStat = b.stats?.find(s => s.name === sortBy)?.value || 0;
+              res = aStat - bStat;
             }
             return sortOrder === 'desc' ? -res : res;
           });
@@ -35,3 +43,4 @@ export class PokemonSelectors {
     );
   }
 }
+

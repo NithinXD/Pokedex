@@ -1,8 +1,8 @@
-﻿<div class="kanto-pokedex-frame">
-  
+<div class="kanto-pokedex-frame">
+
   <!-- Main 3-Column Screen Content -->
   <div class="pokedex-screen-body">
-    
+
     <!-- Leftmost Column: Sort & Filter Panel -->
     <div class="sidebar-screen">
       <div class="sidebar-header">
@@ -10,16 +10,16 @@
       </div>
       <div class="sidebar-content">
         <div class="form-group">
-          <label>Search PokÃƒÂ©mon</label>
+          <label>Search Pok&#233;mon</label>
           <input type="text" placeholder="Name or ID..." [value]="state().searchQuery" (input)="onSearch($event)">
         </div>
-        
+
         <div class="form-group">
           <label>Type Filter</label>
           <select [value]="state().selectedType || ''" (change)="onTypeChange($event)">
             <option value="">All Types</option>
             @for(t of pokemonTypes; track t) {
-              <option [value]="t">{{ t | uppercase }}</option>
+            <option [value]="t">{{ t | uppercase }}</option>
             }
           </select>
         </div>
@@ -29,6 +29,13 @@
           <select [value]="state().sortBy" (change)="onSortChange($event)">
             <option value="id">ID #</option>
             <option value="name">Name</option>
+            <option value="hp">HP</option>
+            <option value="attack">Attack</option>
+            <option value="defense">Defense</option>
+            <option value="special-attack">Sp. Atk</option>
+            <option value="special-defense">Sp. Def</option>
+            <option value="speed">Speed</option>
+            <option value="total">Total BST</option>
           </select>
         </div>
 
@@ -50,248 +57,327 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Main Right Content Wrapper -->
     <div class="main-content-area">
       <!-- Moved Kanto Header -->
-      <div class="main-screens-header">
-        <span class="header-title">Kanto PokÃƒÂ©dex</span>
+      <div class="main-screens-header"
+        style="display: flex; justify-content: space-between; align-items: center; padding-right: 16px;">
+        <span class="header-title">Kanto Pok&#233;dex</span>
+        <div class="view-toggles" style="display: flex; gap: 8px;">
+          <button class="retro-btn" (click)="setViewMode('dex')"
+            [style.background]="viewMode() === 'dex' ? '#ffcb05' : '#fff'">DEX</button>
+          <button class="retro-btn" (click)="setViewMode('grid')"
+            [style.background]="viewMode() === 'grid' ? '#ffcb05' : '#fff'">Nithin's PC</button>
+          <button class="retro-btn" (click)="setViewMode('table')"
+            [style.background]="viewMode() === 'table' ? '#ffcb05' : '#fff'">TABLE</button>
+        </div>
       </div>
 
+      @if (viewMode() === 'dex' || viewMode() === 'grid') {
       <div class="screens-container">
-        <!-- Left Screen: Display 2D Sprite Preview & PokÃƒÂ©dex Entry Description -->
+        <!-- Left Screen: Display 2D Sprite Preview & Pokedex Entry Description -->
         <div class="left-screen">
-      <div class="preview-header">
-        <span class="preview-name">
-          {{ (activePokemon?.name || '---') | uppercase }}
-        </span>
-        @if (activePokemon) {
-          <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
-            STATS
-          </button>
-        }
-      </div>
+          <div class="preview-header">
+            <span class="preview-name">
+              {{ (activePokemon?.name || '---') | uppercase }}
+            </span>
+            @if (activePokemon) {
+            <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
+              STATS
+            </button>
+            }
+          </div>
 
-      <div class="display-box"
-        cdkDropList 
-        [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
-        [cdkDropListSortingDisabled]="true"
-      >
-        <div class="grid-background"></div>
-        <div class="pokeball-bg"></div>
-        
-        @if (state().isLoading) {
-          <img 
-            [src]="getGlitchSpriteUrl()" 
-            alt="Loading..." 
-            class="pokemon-sprite-2d shimmer-sprite"
-          >
-        } @else {
-          @if (activePokemon) {
+          <div class="display-box" cdkDropList
+            [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+            [cdkDropListSortingDisabled]="true">
+            <div class="grid-background"></div>
+            <div class="pokeball-bg"></div>
+
+            @if (state().isLoading) {
+            <img [src]="getGlitchSpriteUrl()" alt="Loading..." class="pokemon-sprite-2d shimmer-sprite">
+            } @else {
+            @if (activePokemon) {
             <!-- Type Badges Overlay -->
             @if (activePokemon.types) {
-              <div class="type-badges">
-                @for (type of activePokemon.types; track type) {
-                  <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
-                }
-              </div>
+            <div class="type-badges">
+              @for (type of activePokemon.types; track type) {
+              <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
+              }
+            </div>
             }
 
-            <div 
-              cdkDrag
-              [cdkDragData]="activePokemon"
-              style="cursor: grab; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;"
-            >
-              <img 
-                [src]="get2dSpriteUrl(activePokemon.id)" 
-                [alt]="activePokemon.name" 
-                class="pokemon-sprite-2d"
-                (error)="$any($event.target).src = getGlitchSpriteUrl()"
-              >
+            <div cdkDrag [cdkDragData]="activePokemon"
+              style="cursor: grab; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;">
+              <img [src]="get2dSpriteUrl(activePokemon.id)" [alt]="activePokemon.name" class="pokemon-sprite-2d"
+                (error)="$any($event.target).src = getGlitchSpriteUrl()">
 
             </div>
-          } @else {
+            } @else {
             <div class="no-pokemon">---</div>
-          }
-        }
-      </div>
+            }
+            }
+          </div>
 
-      <!-- Description Box with Manual View Base Stats Button -->
-      <div class="description-box">
+          <!-- Description Box with Manual View Base Stats Button -->
+          <div class="description-box">
 
-        <div class="desc-text">
-          {{ getPokemonDescription(activePokemon?.name || '') }}
+            <div class="desc-text">
+              {{ getPokemonDescription(activePokemon) }}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Right Screen: Pokemon List OR Stats Panel -->
-    <div class="right-screen">
-      <div class="red-side-stripe"></div>
-      
-      @if (detailPanelOpen()) {
-        <!-- Inline Stats Panel fills right screen when open -->
-        <div class="list-container stats-mode">
-          <app-pokemon-detail></app-pokemon-detail>
-        </div>
-      } @else {
-      <div class="list-container">
-        @if (state().isLoading && pokemonList().length === 0) {
-          <div class="skeleton-container">
-            @for (i of skeletonRows; track $index) {
+        <!-- Right Screen: Pokemon List OR Stats Panel -->
+        <div class="right-screen">
+          <div class="red-side-stripe"></div>
+
+          @if (detailPanelOpen()) {
+          <!-- Inline Stats Panel fills right screen when open -->
+          <div class="list-container stats-mode">
+            <app-pokemon-detail></app-pokemon-detail>
+          </div>
+          } @else {
+          <div class="list-container">
+            @if (state().isLoading && pokemonList().length === 0) {
+            <div class="skeleton-container">
+              @for (i of skeletonRows; track $index) {
               <div class="skeleton-row shimmer">
                 <div class="sk-badge"></div>
                 <div class="sk-num"></div>
                 <div class="sk-name"></div>
               </div>
+              }
+            </div>
+            <!-- NO-CONNECTION BANNER -->
+            @if (state().error) {
+            <div class="no-signal-banner">
+              <span class="no-signal-icon">&#x26A0;</span>
+              <span class="no-signal-msg">NO CONNECTION &mdash; SHOWING CACHED DATA</span>
+              <button class="no-signal-retry" (click)="retryLoad()">&#x21BA;</button>
+            </div>
+            }
+
+            } @else if (pokemonList().length === 0) {
+            <div class="empty-state">
+              <p>No Pok&#233;mon found</p>
+            </div>
+            } @else if (viewMode() === 'grid') {
+            <div class="grid-view-container"
+              style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 16px; background: #e0f8d0; border: 4px solid #8ba37a; border-radius: 8px; height: 500px; overflow-y: auto; align-content: start;"
+              cdkDropList
+              [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+              [cdkDropListSortingDisabled]="true">
+              @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+              <div cdkDrag [cdkDragData]="pokemon" class="pc-grid-item" (click)="selectPokemon(pokemon)"
+                [class.selected]="activePokemon?.id === pokemon.id"
+                style="width: 64px; height: 64px; background: rgba(255,255,255,0.5); border: 2px solid transparent; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab; position: relative;">
+                <!-- Explicit Preview -->
+                <ng-template cdkDragPreview [matchSize]="true">
+                  <div class="pc-grid-item"
+                    style="width: 64px; height: 64px; background: rgba(255,255,255,0.9); border: 2px solid #8ba37a; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <img [src]="get2dSpriteUrl(pokemon.id)" style="width: 48px; height: 48px;">
+                  </div>
+                </ng-template>
+                <img [src]="get2dSpriteUrl(pokemon.id)" [alt]="pokemon.name"
+                  style="width: 48px; height: 48px; position: relative; z-index: 2;"
+                  (error)="$any($event.target).src = getGlitchSpriteUrl()">
+                <span style="font-size: 8px; font-family: var(--font-game); text-transform: uppercase;">{{ pokemon.name
+                  | slice:0:8 }}</span>
+              </div>
+              }
+            </div>
+            <div class="pagination-bar"
+              style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+              <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+              <span style="font-family: var(--font-game); font-size: 12px; color: #1a1a1a;">Page {{ currentPage() }} of
+                {{ totalPages() }}</span>
+              <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+              <select (change)="setPageSize($event)" [value]="pageSize()"
+                style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+                <option value="10">2x5 (10)</option>
+                <option value="25">5x5 (25)</option>
+                <option value="50">10x5 (50)</option>
+              </select>
+            </div>
+            } @else {
+            <cdk-virtual-scroll-viewport itemSize="96" minBufferPx="200" maxBufferPx="400"
+              class="pokedex-virtual-viewport" #listContainer cdkDropList
+              [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+              [cdkDropListSortingDisabled]="true">
+              <div *cdkVirtualFor="let pokemon of pokemonList(); trackBy: trackById" class="list-row"
+                [class.selected]="activePokemon?.id === pokemon.id" (click)="selectPokemon(pokemon)" cdkDrag
+                [cdkDragData]="pokemon">
+                <ng-template cdkDragPreview [matchSize]="true">
+                  <div class="list-row drag-preview-row"
+                    style="overflow: hidden !important; margin: 0; padding: 12px 14px; box-sizing: border-box; width: 100%;">
+                    <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
+                    <span class="icon-sprite-box">
+                      <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
+                        (load)="$any($event.target).setAttribute('data-loaded', 'true')">
+                    </span>
+                    <div class="name" style="display: flex; flex-direction: column;">
+                      {{ pokemon.name | uppercase }}
+                      <div style="font-size: 5px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
+                        <span>HP:{{ getStat(pokemon, 'hp') }}</span>
+                        <span>ATK:{{ getStat(pokemon, 'attack') }}</span>
+                        <span>DEF:{{ getStat(pokemon, 'defense') }}</span>
+                        <span>SPA:{{ getStat(pokemon, 'special-attack') }}</span>
+                        <span>SPD:{{ getStat(pokemon, 'special-defense') }}</span>
+                        <span>SPE:{{ getStat(pokemon, 'speed') }}</span>
+                        <span style="color: #dc0a2d;">BST:{{ getBST(pokemon) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
+
+                <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
+
+                <span class="icon-sprite-box">
+                  <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
+                    (load)="$any($event.target).setAttribute('data-loaded', 'true')"
+                    (error)="$any($event.target).src = getGlitchSpriteUrl()">
+                </span>
+
+                <div class="name" style="display: flex; flex-direction: column;">
+                  {{ pokemon.name | uppercase }}
+                  <div style="font-size: 5px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
+                    <span>HP:{{ getStat(pokemon, 'hp') }}</span>
+                    <span>ATK:{{ getStat(pokemon, 'attack') }}</span>
+                    <span>DEF:{{ getStat(pokemon, 'defense') }}</span>
+                    <span>SPA:{{ getStat(pokemon, 'special-attack') }}</span>
+                    <span>SPD:{{ getStat(pokemon, 'special-defense') }}</span>
+                    <span>SPE:{{ getStat(pokemon, 'speed') }}</span>
+                    <span style="color: #dc0a2d;">BST:{{ getBST(pokemon) }}</span>
+                  </div>
+                </div>
+              </div>
+            </cdk-virtual-scroll-viewport>
             }
           </div>
-        <!-- NO-CONNECTION BANNER — non-blocking, list still shows below -->
-        @if (state().error) {
-          <div class="no-signal-banner">
-            <span class="no-signal-icon">&#x26A0;</span>
-            <span class="no-signal-msg">NO CONNECTION &mdash; SHOWING CACHED DATA</span>
-            <button class="no-signal-retry" (click)="retryLoad()">&#x21BA;</button>
-          </div>
-        }
-
-        } @else if (pokemonList().length === 0) {
-          <div class="empty-state">
-            <p>No PokÃƒÂ©mon found</p>
-          </div>
-        } @else {
-          <cdk-virtual-scroll-viewport 
-            itemSize="96" 
-            minBufferPx="200" 
-            maxBufferPx="400" 
-            class="pokedex-virtual-viewport"
-            #listContainer
-            cdkDropList
-            [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
-            [cdkDropListSortingDisabled]="true"
-          >
-            <div 
-              *cdkVirtualFor="let pokemon of pokemonList(); trackBy: trackById" 
-              class="list-row"
-              [class.selected]="activePokemon?.id === pokemon.id"
-              (click)="selectPokemon(pokemon)"
-              cdkDrag
-              [cdkDragData]="pokemon"
-            >
-              <!-- Explicit Preview to avoid any scrollbar artifacts -->
-              <!-- Explicit Preview to avoid any scrollbar artifacts -->
-              <ng-template cdkDragPreview [matchSize]="true">
-                <div class="list-row drag-preview-row" style="overflow: hidden !important; margin: 0; padding: 12px 14px; box-sizing: border-box; width: 100%;">
-                  <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
-                  <span class="icon-sprite-box">
-                    <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name" (load)="$any($event.target).setAttribute('data-loaded', 'true')">
-                  </span>
-                  <span class="name">{{ pokemon.name | uppercase }}</span>
+          }
+        </div>
+      </div> <!-- closes screens-container -->
+      } @else {
+      <div class="table-view-container"
+        style="padding: 16px; background: #fff; border: 4px solid #1a1a1a; border-radius: 8px; height: 500px; overflow-y: auto;">
+        <table
+          style="width: 100%; border-collapse: collapse; font-family: var(--font-game); font-size: 8px; text-transform: uppercase;">
+          <thead style="background: #1a1a1a; color: #fff;">
+            <tr>
+              <th style="padding: 8px;">Sprite</th>
+              <th style="padding: 8px;">Name</th>
+              <th style="padding: 8px;">Types</th>
+              <th style="padding: 8px;">HP</th>
+              <th style="padding: 8px;">Atk</th>
+              <th style="padding: 8px;">Def</th>
+              <th style="padding: 8px;">SpA</th>
+              <th style="padding: 8px;">SpD</th>
+              <th style="padding: 8px;">Spe</th>
+              <th style="padding: 8px;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+            <tr (click)="selectPokemon(pokemon)" [class.selected]="activePokemon?.id === pokemon.id"
+              style="border-bottom: 2px solid #ddd; cursor: pointer;"
+              [style.background]="activePokemon?.id === pokemon.id ? '#ffcb05' : 'transparent'">
+              <td style="text-align: center;"><img [src]="get2dSpriteUrl(pokemon.id)" width="40" height="40"></td>
+              <td style="text-align: center; font-weight: bold;">{{ pokemon.name }}</td>
+              <td style="text-align: center;">
+                <div style="display: flex; gap: 4px; justify-content: center;">
+                  @for (type of pokemon.types; track type) {
+                  <span class="type-badge" [attr.data-type]="type" style="transform: scale(0.7);">{{ type }}</span>
+                  }
                 </div>
-              </ng-template>
-
-              <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
-              
-              <span class="icon-sprite-box">
-                <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
-                  (load)="$any($event.target).setAttribute('data-loaded', 'true')" 
-                  (error)="$any($event.target).src = getGlitchSpriteUrl()">
-              </span>
-              
-              <span class="name">{{ pokemon.name | uppercase }}</span>
-            </div>
-          </cdk-virtual-scroll-viewport>
-        }
+              </td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'hp') }}</td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'attack') }}</td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'defense') }}</td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'special-attack') }}</td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'special-defense') }}</td>
+              <td style="text-align: center;">{{ getStat(pokemon, 'speed') }}</td>
+              <td style="text-align: center; color: #dc0a2d;">{{ getBST(pokemon) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
       </div>
-      } <!-- closes @else -->
-    </div>
-  </div> <!-- closes screens-container -->
-  </div> <!-- closes main-content-area -->
+      <div class="pagination-bar"
+        style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+        <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+        <span style="font-family: var(--font-game); font-size: 10px;">Page {{ currentPage() }} of {{ totalPages()
+          }}</span>
+        <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+        <select (change)="setPageSize($event)" [value]="pageSize()"
+          style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+          <option value="10">10 per page</option>
+          <option value="25">25 per page</option>
+          <option value="50">50 per page</option>
+        </select>
+      </div>
+      }
+
+    </div> <!-- closes main-content-area -->
   </div> <!-- closes pokedex-screen-body -->
 
   <!-- Red Footer -->
   <div class="pokedex-footer">
-    <app-team-dock
-      [selectedTeamName]="teamName()"
-      [allTeamNames]="allTeamNames()"
-      [teamPokemon]="dockedTeam()" [teamTotalBaseStats]="teamTotalBaseStats()"
-      (removePokemon)="removePokemon($event)"
-      (dropPokemon)="onDropPokemon($event)"
-      (openSearch)="openSearchModal($event)"
-      (openTeamList)="openTeamListModal()"
-      (openRenameModal)="openRenameTeamModal()"
-      (createTeam)="openCreateTeamModal()"
-      (nextTeam)="onNextTeam()"
+    <app-team-dock [selectedTeamName]="teamName()" [allTeamNames]="allTeamNames()" [teamPokemon]="dockedTeam()"
+      [teamTotalBaseStats]="teamTotalBaseStats()" (removePokemon)="removePokemon($event)"
+      (dropPokemon)="onDropPokemon($event)" (openSearch)="openSearchModal($event)" (openTeamList)="openTeamListModal()"
+      (openRenameModal)="openRenameTeamModal()" (createTeam)="openCreateTeamModal()" (nextTeam)="onNextTeam()"
       (prevTeam)="onPrevTeam()">
     </app-team-dock>
   </div>
 </div> <!-- closes kanto-pokedex-frame -->
 
 @if (activeModal() !== null) {
-  <div class="generic-modal-backdrop" (click)="closeModal()">
-    <div class="generic-modal-content" (click)="$event.stopPropagation()">
-      <button class="close-btn" (click)="closeModal()">X</button>
-      
-      @if (activeModal() === 'createTeam' || activeModal() === 'renameTeam') {
-        <h2 style="margin-top: 0;">{{ activeModal() === 'createTeam' ? 'Create New Team' : 'Rename Team' }}</h2>
-        <input type="text" [value]="modalInput()" (input)="modalInput.set($any($event).target.value)" placeholder="Enter team name..." class="modal-text-input" (keydown.enter)="submitModalInput()" />
-        <button class="retro-btn-save" (click)="submitModalInput()" style="margin-top: 16px; width: 100%;">{{ activeModal() === 'createTeam' ? 'CREATE' : 'RENAME' }}</button>
-      }
+<div class="generic-modal-backdrop" (click)="closeModal()">
+  <div class="generic-modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeModal()">X</button>
 
-      @if (activeModal() === 'teamList') {
-        <h2 style="margin-top: 0;">Select a Team</h2>
-        <div class="modal-list">
-          @for (name of allTeamNames(); track name) {
-            <div class="modal-list-item" (click)="selectTeamFromModal(name)" [class.selected]="name === teamName()">
-              {{ name }}
-            </div>
-          }
-        </div>
-      }
+    @if (activeModal() === 'createTeam' || activeModal() === 'renameTeam') {
+    <h2 style="margin-top: 0;">{{ activeModal() === 'createTeam' ? 'Create New Team' : 'Rename Team' }}</h2>
+    <input type="text" [value]="modalInput()" (input)="modalInput.set($any($event).target.value)"
+      placeholder="Enter team name..." class="modal-text-input" (keydown.enter)="submitModalInput()" />
+    <button class="retro-btn-save" (click)="submitModalInput()" style="margin-top: 16px; width: 100%;">{{ activeModal()
+      === 'createTeam' ? 'CREATE' : 'RENAME' }}</button>
+    }
 
-      @if (activeModal() === 'search') {
-        <h2 style="margin-top: 0;">Find Pok&#233;mon</h2>
-        <input
-          type="text"
-          autofocus
-          [value]="modalSearchQuery()"
-          (input)="modalSearchQuery.set($any($event).target.value)"
-          (keydown.enter)="modalFilteredPokemon().length > 0 && selectPokemonForSlot(modalFilteredPokemon()[0])"
-          (keydown.escape)="closeModal()"
-          placeholder="Name or ID..."
-          class="modal-text-input"
-        />
-        <div class="modal-list scrollable">
-          @if (modalFilteredPokemon().length === 0 && modalSearchQuery().length > 0) {
-            <div class="search-no-results">No Pok&#233;mon found</div>
-          }
-          @for (p of modalFilteredPokemon(); track p.id; let first = $first) {
-            <div
-              class="modal-list-item search-item"
-              [class.search-item-top]="first && modalSearchQuery().length > 0"
-              (click)="selectPokemonForSlot(p)"
-            >
-              <img [src]="get2dSpriteUrl(p.id)" width="40" height="40" />
-              <span>#{{ p.id.toString().padStart(3, '0') }} {{ p.name | uppercase }}</span>
-              @if (first && modalSearchQuery().length > 0) {
-                <span class="enter-hint">&#x21B5; Enter</span>
-              }
-            </div>
-          }
-        </div>
+    @if (activeModal() === 'teamList') {
+    <h2 style="margin-top: 0;">Select a Team</h2>
+    <div class="modal-list">
+      @for (name of allTeamNames(); track name) {
+      <div class="modal-list-item" (click)="selectTeamFromModal(name)" [class.selected]="name === teamName()">
+        {{ name }}
+      </div>
       }
     </div>
+    }
+
+    @if (activeModal() === 'search') {
+    <h2 style="margin-top: 0;">Find Pok&#233;mon</h2>
+    <input type="text" autofocus [value]="modalSearchQuery()" (input)="modalSearchQuery.set($any($event).target.value)"
+      (keydown.enter)="modalFilteredPokemon().length > 0 && selectPokemonForSlot(modalFilteredPokemon()[0])"
+      (keydown.escape)="closeModal()" placeholder="Name or ID..." class="modal-text-input" />
+    <div class="modal-list scrollable">
+      @if (modalFilteredPokemon().length === 0 && modalSearchQuery().length > 0) {
+      <div class="search-no-results">No Pok&#233;mon found</div>
+      }
+      @for (p of modalFilteredPokemon(); track p.id; let first = $first) {
+      <div class="modal-list-item search-item" [class.search-item-top]="first && modalSearchQuery().length > 0"
+        (click)="selectPokemonForSlot(p)">
+        <img [src]="get2dSpriteUrl(p.id)" width="40" height="40" />
+        <span>#{{ p.id.toString().padStart(3, '0') }} {{ p.name | uppercase }}</span>
+        @if (first && modalSearchQuery().length > 0) {
+        <span class="enter-hint">&#x21B5; Enter</span>
+        }
+      </div>
+      }
+    </div>
+    }
   </div>
+</div>
 }
-
-
-
-
-
-
-
-
-
-
-
-

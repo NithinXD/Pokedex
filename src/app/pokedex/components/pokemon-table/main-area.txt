@@ -1,0 +1,169 @@
+﻿    <!-- Main Right Content Wrapper -->
+    <div class="main-content-area">
+      <div class="main-screens-header" style="display: flex; justify-content: space-between; align-items: center; padding-right: 16px;">
+        <span class="header-title">Kanto Pokédex</span>
+        <div class="view-toggles" style="display: flex; gap: 8px;">
+          <button class="retro-btn" (click)="setViewMode('dex')" [style.background]="viewMode() === 'dex' ? '#ffcb05' : '#fff'">DEX</button>
+          <button class="retro-btn" (click)="setViewMode('grid')" [style.background]="viewMode() === 'grid' ? '#ffcb05' : '#fff'">PC GRID</button>
+          <button class="retro-btn" (click)="setViewMode('table')" [style.background]="viewMode() === 'table' ? '#ffcb05' : '#fff'">TABLE</button>
+        </div>
+      </div>
+
+      @if (viewMode() === 'dex' || viewMode() === 'grid') {
+      <div class="screens-container">
+        <!-- Left Screen: Display 2D Sprite Preview & PokÃƒÂ©dex Entry Description -->
+        <div class="left-screen">
+      <div class="preview-header">
+        <span class="preview-name">
+          {{ (activePokemon?.name || '---') | uppercase }}
+        </span>
+        @if (activePokemon) {
+          <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
+            STATS
+          </button>
+        }
+      </div>
+
+      <div class="display-box"
+        cdkDropList 
+        [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+        [cdkDropListSortingDisabled]="true"
+      >
+        <div class="grid-background"></div>
+        <div class="pokeball-bg"></div>
+        
+        @if (state().isLoading) {
+          <img 
+            [src]="getGlitchSpriteUrl()" 
+            alt="Loading..." 
+            class="pokemon-sprite-2d shimmer-sprite"
+          >
+        } @else {
+          @if (activePokemon) {
+            <!-- Type Badges Overlay -->
+            @if (activePokemon.types) {
+              <div class="type-badges">
+                @for (type of activePokemon.types; track type) {
+                  <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
+                }
+              </div>
+            }
+
+            <div 
+              cdkDrag
+              [cdkDragData]="activePokemon"
+              style="cursor: grab; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;"
+            >
+              <img 
+                [src]="get2dSpriteUrl(activePokemon.id)" 
+                [alt]="activePokemon.name" 
+                class="pokemon-sprite-2d"
+                (error)="$any($event.target).src = getGlitchSpriteUrl()"
+              >
+
+            </div>
+          } @else {
+            <div class="no-pokemon">---</div>
+          }
+        }
+      </div>
+
+      <!-- Description Box with Manual View Base Stats Button -->
+      <div class="description-box">
+
+        <div class="desc-text">
+          {{ getPokemonDescription(activePokemon?.name || '') }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Screen: Pokemon List OR Stats Panel -->
+    <div class="right-screen">
+      <div class="red-side-stripe"></div>
+      
+      @if (detailPanelOpen()) {
+        <div class="list-container stats-mode">
+          <app-pokemon-detail></app-pokemon-detail>
+        </div>
+      } @else {
+      <div class="list-container">
+        @if (state().isLoading && pokemonList().length === 0) {} @else if (viewMode() === 'grid') {
+        <div class="grid-view-container" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; background: #e0f8d0; border: 4px solid #8ba37a; border-radius: 8px; height: 500px; overflow-y: auto;">
+          @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+            <div cdkDrag [cdkDragData]="pokemon" class="pc-grid-item" (click)="selectPokemon(pokemon)" [class.selected]="activePokemon?.id === pokemon.id" style="width: 64px; height: 64px; background: rgba(255,255,255,0.5); border: 2px solid transparent; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative;">
+              <img [src]="get2dSpriteUrl(pokemon.id)" [alt]="pokemon.name" style="width: 48px; height: 48px; position: relative; z-index: 2;">
+              <span style="font-size: 8px; font-family: var(--font-game); text-transform: uppercase;">{{ pokemon.name | slice:0:8 }}</span>
+            </div>
+          }
+        </div>
+        <div class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+          <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+          <span style="font-family: var(--font-game); font-size: 10px;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+          <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+          <select (change)="setPageSize($event)" [value]="pageSize()" style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+        } @else {
+
+      </div>
+      } <!-- closes @else -->
+    </div>
+  </div> <!-- closes screens-container -->
+      } @else {
+        <div class="table-view-container" style="padding: 16px; background: #fff; border: 4px solid #1a1a1a; border-radius: 8px; height: 500px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-family: var(--font-game); font-size: 8px; text-transform: uppercase;">
+            <thead style="background: #1a1a1a; color: #fff;">
+              <tr>
+                <th style="padding: 8px;">Sprite</th>
+                <th style="padding: 8px;">Name</th>
+                <th style="padding: 8px;">Types</th>
+                <th style="padding: 8px;">HP</th>
+                <th style="padding: 8px;">Atk</th>
+                <th style="padding: 8px;">Def</th>
+                <th style="padding: 8px;">SpA</th>
+                <th style="padding: 8px;">SpD</th>
+                <th style="padding: 8px;">Spe</th>
+                <th style="padding: 8px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pokemon of paginatedPokemonList(); track pokemon.id) {
+                <tr (click)="selectPokemon(pokemon)" [class.selected]="activePokemon?.id === pokemon.id" style="border-bottom: 2px solid #ddd; cursor: pointer;" [style.background]="activePokemon?.id === pokemon.id ? '#ffcb05' : 'transparent'">
+                  <td style="text-align: center;"><img [src]="get2dSpriteUrl(pokemon.id)" width="40" height="40"></td>
+                  <td style="text-align: center; font-weight: bold;">{{ pokemon.name }}</td>
+                  <td style="text-align: center;">
+                    <div style="display: flex; gap: 4px; justify-content: center;">
+                      @for (type of pokemon.types; track type) {
+                        <span class="type-badge" [attr.data-type]="type" style="transform: scale(0.7);">{{ type }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'hp') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'attack') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'defense') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'special-attack') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'special-defense') }}</td>
+                  <td style="text-align: center;">{{ getStat(pokemon, 'speed') }}</td>
+                  <td style="text-align: center; color: #dc0a2d;">{{ getBST(pokemon) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 12px;">
+          <button class="retro-btn" (click)="prevPage()" [disabled]="currentPage() === 1">PREV</button>
+          <span style="font-family: var(--font-game); font-size: 10px;">Page {{ currentPage() }} of {{ totalPages() }}</span>
+          <button class="retro-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">NEXT</button>
+          <select (change)="setPageSize($event)" [value]="pageSize()" style="font-family: var(--font-game); font-size: 10px; padding: 4px;">
+            <option value="10">10 per page</option>
+            <option value="25">25 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+      }
+
+  </div> <!-- closes main-content-area -->
+
