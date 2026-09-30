@@ -325,7 +325,7 @@
   <!-- Red Footer -->
   <div class="pokedex-footer">
     <app-team-dock [selectedTeamName]="teamName()" [allTeamNames]="allTeamNames()" [teamPokemon]="dockedTeam()"
-      [teamTotalBaseStats]="teamTotalBaseStats()" (removePokemon)="removePokemon($event)"
+      [teamTotalBaseStats]="teamTotalBaseStats()" [teamsLoading]="teamStore.isLoading()" [teamsError]="teamStore.error()" (removePokemon)="removePokemon($event)"
       (dropPokemon)="onDropPokemon($event)" (openSearch)="openSearchModal($event)" (openTeamList)="openTeamListModal()"
       (openRenameModal)="openRenameTeamModal()" (createTeam)="openCreateTeamModal()" (nextTeam)="onNextTeam()"
       (prevTeam)="onPrevTeam()">
@@ -338,12 +338,16 @@
   <div class="generic-modal-content" (click)="$event.stopPropagation()">
     <button class="close-btn" (click)="closeModal()">X</button>
 
-    @if (activeModal() === 'createTeam' || activeModal() === 'renameTeam') {
-    <h2 style="margin-top: 0;">{{ activeModal() === 'createTeam' ? 'Create New Team' : 'Rename Team' }}</h2>
+    @if (activeModal() === 'createTeam') {
+      <h2 style="margin-top: 0;">Create New Team</h2>
+      <app-team-builder-form (formClosed)="closeModal()"></app-team-builder-form>
+    }
+
+    @if (activeModal() === 'renameTeam') {
+    <h2 style="margin-top: 0;">Rename Team</h2>
     <input type="text" [value]="modalInput()" (input)="modalInput.set($any($event).target.value)"
       placeholder="Enter team name..." class="modal-text-input" (keydown.enter)="submitModalInput()" />
-    <button class="retro-btn-save" (click)="submitModalInput()" style="margin-top: 16px; width: 100%;">{{ activeModal()
-      === 'createTeam' ? 'CREATE' : 'RENAME' }}</button>
+    <button class="retro-btn-save" (click)="submitModalInput()" style="margin-top: 16px; width: 100%;">RENAME</button>
     }
 
     @if (activeModal() === 'teamList') {

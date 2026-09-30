@@ -16,8 +16,20 @@
   <div class="form-group" style="position: relative;">
     <label>Add Pok&eacute;mon ({{ selectedPokemon.length }}/6)</label>
     <input type="text" formControlName="pokemonSearch" placeholder="Type to search..." class="retro-input" [attr.disabled]="selectedPokemon.length >= 6 ? true : null" />
-    
-    @if (searchResults.length > 0) {
+    @if (isSearchLoading) {
+      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #555;">
+        Loading...
+      </div>
+    } @else if (searchError) {
+      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #dc0a2d;">
+        {{ searchError }}
+        <button (click)="retrySearch()" class="retro-btn" style="margin-top: 4px; padding: 4px 8px; font-size: 8px;">Retry</button>
+      </div>
+    } @else if (hasSearched && searchResults.length === 0 && form.get('pokemonSearch')?.value) {
+      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #555;">
+        No Pokémon found.
+      </div>
+    } @else if (searchResults.length > 0) {
       <div class="autocomplete-dropdown scrollable">
         @for (p of searchResults; track p.id) {
           <div class="autocomplete-item" (click)="selectPokemon(p)">

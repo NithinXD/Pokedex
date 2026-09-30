@@ -17,6 +17,8 @@ export class TeamDockComponent {
   readonly allTeamNames = input<string[]>([]);
   readonly teamPokemon = input<(Pokemon | undefined)[]>([]); // Max 6
   readonly teamTotalBaseStats = input<number>(0);
+  readonly teamsLoading = input<boolean>(false);
+  readonly teamsError = input<string | null>(null);
 
   readonly removePokemon = output<number>();
   readonly saveTeam = output<void>();

@@ -1,38 +1,45 @@
 <div class="team-dock-bar">
-
-  <!-- LEFT: + button + team name -->
-  <div class="dock-left">
-    <button type="button" class="add-team-btn" (click)="createTeam.emit()" title="Create New Team">+</button>
-    <div class="team-label">
-      <span title="Select Team" (click)="openTeamList.emit()">TEAM : </span>
-      <span (click)="editTeamName()" title="Edit Team Name">{{ selectedTeamName() }}</span>
+  @if (teamsLoading()) {
+    <div style="flex: 1; text-align: center; color: #1a1a1a;">LOADING TEAMS...</div>
+  } @else if (teamsError()) {
+    <div style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 16px; color: #1a1a1a; font-weight: bold; text-shadow: none;">
+      <span class="no-signal-icon" style="color: #1a1a1a;">&#x26A0;</span>
+      <span>{{ teamsError() }}</span>
     </div>
-  </div>
-
-  <!-- CENTER: nav arrows + pokemon slots -->
-  <div class="dock-center">
-    <button type="button" class="nav-arrow left-arrow" (click)="prevTeam.emit()"></button>
-
-    <div class="slots-container">
-      @for (idx of slots; track idx) {
-        <div class="slot-circle" [class.is-empty]="!teamPokemon()[idx]" cdkDropList [id]="'dock-slot-' + idx"
-          (cdkDropListDropped)="onDrop($event, idx)"
-          (click)="!teamPokemon()[idx] && openSearch.emit(idx)"
-          [title]="!teamPokemon()[idx] ? 'Click to search Pok\u00e9mon' : ''">
-          @if (teamPokemon()[idx]; as pokemon) {
-            <img [src]="getSpriteUrl(pokemon.id)" [alt]="pokemon.name" class="dock-sprite pixelated"
-              (click)="removePokemon.emit(idx)" title="Click to remove" />
-          }
-        </div>
-      }
+  } @else {
+    <!-- LEFT: + button + team name -->
+    <div class="dock-left">
+      <button type="button" class="add-team-btn" (click)="createTeam.emit()" title="Create New Team">+</button>
+      <div class="team-label">
+        <span title="Select Team" (click)="openTeamList.emit()">TEAM : </span>
+        <span (click)="editTeamName()" title="Edit Team Name">{{ selectedTeamName() }}</span>
+      </div>
     </div>
 
-    <button type="button" class="nav-arrow right-arrow" (click)="nextTeam.emit()"></button>
-  </div>
+    <!-- CENTER: nav arrows + pokemon slots -->
+    <div class="dock-center">
+      <button type="button" class="nav-arrow left-arrow" (click)="prevTeam.emit()"></button>
 
-  <!-- RIGHT: BST -->
-  <div class="dock-right">
-    BST: {{ teamTotalBaseStats() }}
-  </div>
+      <div class="slots-container">
+        @for (idx of slots; track idx) {
+          <div class="slot-circle" [class.is-empty]="!teamPokemon()[idx]" cdkDropList [id]="'dock-slot-' + idx"
+            (cdkDropListDropped)="onDrop($event, idx)"
+            (click)="!teamPokemon()[idx] && openSearch.emit(idx)"
+            [title]="!teamPokemon()[idx] ? 'Click to search Pok\u00e9mon' : ''">
+            @if (teamPokemon()[idx]; as pokemon) {
+              <img [src]="getSpriteUrl(pokemon.id)" [alt]="pokemon.name" class="dock-sprite pixelated"
+                (click)="removePokemon.emit(idx)" title="Click to remove" />
+            }
+          </div>
+        }
+      </div>
 
+      <button type="button" class="nav-arrow right-arrow" (click)="nextTeam.emit()"></button>
+    </div>
+
+    <!-- RIGHT: BST -->
+    <div class="dock-right">
+      BST: {{ teamTotalBaseStats() }}
+    </div>
+  }
 </div>

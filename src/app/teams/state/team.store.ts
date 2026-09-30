@@ -11,9 +11,13 @@ export class TeamStore {
   private readonly teams$ = new BehaviorSubject<Team[]>([]);
   private readonly activeTeam$ = new BehaviorSubject<Team | null>(null);
   private readonly activeTeamSignal = toSignal(this.activeTeam$);
+  private readonly isLoading$ = new BehaviorSubject<boolean>(false);
+  private readonly error$ = new BehaviorSubject<string | null>(null);
 
   readonly allTeams$ = this.teams$.asObservable();
   readonly currentTeam$ = this.activeTeam$.asObservable();
+  readonly isLoading = toSignal(this.isLoading$, { initialValue: false });
+  readonly error = toSignal(this.error$, { initialValue: null });
 
   constructor() {
     this.loadTeams();
@@ -31,6 +35,8 @@ export class TeamStore {
   }
 
   loadTeams(): void {
+    this.isLoading$.next(true);
+    this.error$.next(null);
     this.api.getTeams$().pipe(
       tap(teams => {
         this.teams$.next(teams);
@@ -39,10 +45,23 @@ export class TeamStore {
           const found = savedId ? teams.find(t => t.id.toString() === savedId) : null;
           this.activeTeam$.next(found || teams[0]);
         }
+        this.isLoading$.next(false);
       }),
-      catchError(() => of([])),
+      catchError(() => {
+        this.isLoading$.next(false);
+        this.error$.next('Failed to load teams. No connection.');
+        return of([]);
+      }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe();
+  }
+
+  retryLoad(): void {
+    this.loadTeams();
+  }
+
+  clearError(): void {
+    this.error$.next(null);
   }
 
   /**
@@ -63,12 +82,13 @@ export class TeamStore {
         const updated = this.teams$.getValue().map(t => t.id === tempId ? persisted : t);
         this.teams$.next(updated);
         this.activeTeam$.next(persisted);
+        this.error$.next(null);
       }),
       catchError(err => {
         // 3. Rollback on failure
         this.teams$.next(previousSnapshot);
         this.activeTeam$.next(previousSnapshot[0] || null);
-        alert(`Connection lost. Could not save your team. Please check your network and try saving again.`);
+        this.error$.next(`Connection lost. Could not save your team.`);
         return of(null);
       }),
       takeUntilDestroyed(this.destroyRef)
@@ -88,11 +108,12 @@ export class TeamStore {
 
     // 2. Perform backend mutation
     this.api.deleteTeamMutation$(id).pipe(
+      tap(() => this.error$.next(null)),
       catchError(err => {
         // Rollback
         this.teams$.next(previousSnapshot);
         this.activeTeam$.next(previousActive);
-        alert('Failed to delete team.');
+        this.error$.next('Failed to delete team.');
         return of(null);
       }),
       takeUntilDestroyed(this.destroyRef)

@@ -27,6 +27,15 @@ export class PokemonDetailComponent {
   );
 
   readonly selectedPokemon = computed(() => this.state().detailPanelPokemon);
+  readonly isLoading = computed(() => this.state().isDetailLoading);
+  readonly error = computed(() => this.state().detailError);
+
+  retryDetail(): void {
+    const current = this.state().selectedPokemon;
+    if (current) {
+        this.store.retryDetailPanel(current);
+    }
+  }
 
   /** Index of current pokemon in the sorted list */
   readonly currentIndex = computed(() => {

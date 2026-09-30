@@ -1,15 +1,27 @@
-@if (selectedPokemon()) {
-  <div class="stats-inline-panel">
+<div class="stats-inline-panel">
+  <!-- Red header with close -->
+  <div class="stats-header">
+    <span class="stats-title">
+      {{ selectedPokemon()?.name || state().selectedPokemon?.name || '---' | uppercase }}
+    </span>
+    <button class="btn-close" (click)="closePanel()" title="Back to list">✕</button>
+  </div>
 
-    <!-- Red header with Pokémon name + close -->
-    <div class="stats-header">
-      <span class="stats-title">{{ selectedPokemon()?.name | uppercase }}</span>
-      <button class="btn-close" (click)="closePanel()" title="Back to list">✕</button>
-    </div>
-
-    <!-- White body -->
-    <div class="stats-body">
-
+  <!-- White body -->
+  <div class="stats-body">
+    
+    @if (isLoading()) {
+      <div class="skeleton-container" style="padding: 16px;">
+        <div class="shimmer" style="height: 200px; width: 100%; border-radius: 8px; margin-bottom: 16px;"></div>
+        <div class="shimmer" style="height: 40px; width: 100%; border-radius: 4px;"></div>
+      </div>
+    } @else if (error()) {
+      <div class="no-signal-banner" style="margin: 16px;">
+        <span class="no-signal-icon">&#x26A0;</span>
+        <span class="no-signal-msg">{{ error() }}</span>
+        <button class="no-signal-retry" (click)="retryDetail()">&#x21BA;</button>
+      </div>
+    } @else if (selectedPokemon()) {
       <!-- Radar chart -->
       <div class="chart-box">
         <div class="chart-label">BASE STATS</div>
@@ -27,8 +39,6 @@
           </ul>
         </div>
       }
-
-    </div>
-
+    }
   </div>
-}
+</div>

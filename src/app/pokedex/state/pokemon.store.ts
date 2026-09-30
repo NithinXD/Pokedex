@@ -1,4 +1,4 @@
-﻿import { Injectable, inject, DestroyRef } from '@angular/core';
+import { Injectable, inject, DestroyRef } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PokedexApiService } from '../services/pokedex-graphql.service';
@@ -14,6 +14,8 @@ export interface PokemonState {
   sortOrder: 'asc' | 'desc';
   isLoading: boolean;
   error: string | null;
+  isDetailLoading: boolean;
+  detailError: string | null;
 }
 
 const initialState: PokemonState = {
@@ -25,7 +27,9 @@ const initialState: PokemonState = {
   sortBy: 'id',
   sortOrder: 'asc',
   isLoading: false,
-  error: null
+  error: null,
+  isDetailLoading: false,
+  detailError: null
 };
 
 @Injectable({ providedIn: 'root' })
@@ -94,20 +98,31 @@ export class PokemonStore {
 
   openDetailPanel(pokemon: Pokemon | null): void {
     if (!pokemon) {
-      this.patchState({ detailPanelPokemon: null });
+      this.patchState({ detailPanelPokemon: null, isDetailLoading: false, detailError: null });
       return;
     }
     
+    // Only fetch if different pokemon, otherwise just clear error
+    if (this.state$.getValue().detailPanelPokemon?.id !== pokemon.id) {
+        this.patchState({ isDetailLoading: true, detailError: null, detailPanelPokemon: null });
+    } else {
+        this.patchState({ isDetailLoading: true, detailError: null });
+    }
+
     this.apiService.getPokemonById$(pokemon.id).pipe(
       tap((detailedPokemon) => {
-        this.patchState({ detailPanelPokemon: detailedPokemon });
+        this.patchState({ detailPanelPokemon: detailedPokemon, isDetailLoading: false });
       }),
       catchError((err: Error) => {
-        alert('Failed to load PokAcmon details. Please check your connection.');
+        this.patchState({ detailError: 'Failed to load details. No connection.', isDetailLoading: false });
         return of(null);
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe();
+  }
+
+  retryDetailPanel(pokemon: Pokemon): void {
+    this.openDetailPanel(pokemon);
   }
 
   private patchState(partial: Partial<PokemonState>): void {
