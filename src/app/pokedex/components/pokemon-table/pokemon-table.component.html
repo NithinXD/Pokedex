@@ -1,4 +1,4 @@
-﻿<div class="kanto-pokedex-frame">
+<div class="kanto-pokedex-frame">
   
   <!-- Main 3-Column Screen Content -->
   <div class="pokedex-screen-body">
@@ -133,13 +133,22 @@
             maxBufferPx="400" 
             class="pokedex-virtual-viewport"
             #listContainer
+            cdkDropList
+            [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+            [cdkDropListSortingDisabled]="true"
           >
             <div 
               *cdkVirtualFor="let pokemon of pokemonList(); trackBy: trackById" 
               class="list-row"
               [class.selected]="activePokemon?.id === pokemon.id"
               (click)="selectPokemon(pokemon)"
+              cdkDrag
+              [cdkDragData]="pokemon"
             >
+              <div *cdkDragPreview class="drag-preview-sprite">
+                <img [src]="get2dSpriteUrl(pokemon.id)" width="60" height="60" style="filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));">
+              </div>
+
               <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
               
               <span class="icon-sprite-box">
@@ -157,7 +166,20 @@
   </div> <!-- closes pokedex-screen-body -->
 
   <!-- Red Footer -->
-  <div class="pokedex-footer"></div>
+  <div class="pokedex-footer">
+    <app-team-dock
+      [selectedTeamName]="teamName()"
+      [allTeamNames]="allTeamNames()"
+      [teamPokemon]="dockedTeam()"
+      (removePokemon)="removePokemon($event)"
+      (dropPokemon)="onDropPokemon($event)"
+      (selectTeam)="onSelectTeam($event)"
+      (renameTeam)="onRenameTeam($event)"
+      (createTeam)="onCreateTeam()"
+      (nextTeam)="onNextTeam()"
+      (prevTeam)="onPrevTeam()">
+    </app-team-dock>
+  </div>
 </div> <!-- closes kanto-pokedex-frame -->
 
 <!-- Base Stats Animated Radar Chart Modal -->

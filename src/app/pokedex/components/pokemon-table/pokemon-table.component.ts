@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -6,17 +6,21 @@ import { PokemonStore, PokemonState } from '../../state/pokemon.store';
 import { Pokemon } from '../../models/pokemon.model';
 import { PokemonSelectors } from '../../state/pokemon.selectors';
 import { PokemonDetailComponent } from '../pokemon-detail/pokemon-detail.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { TeamDockComponent } from '../../../teams/components/team-dock/team-dock.component';
+import { TeamStore } from '../../../teams/state/team.store';
 
 @Component({
   selector: 'app-pokemon-table',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, PokemonDetailComponent],
+  imports: [CommonModule, ScrollingModule, PokemonDetailComponent, DragDropModule, TeamDockComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pokemon-table.component.html',
   styleUrl: './pokemon-table.component.scss'
 })
 export class PokemonTableComponent {
   readonly store = inject(PokemonStore);
+  readonly teamStore = inject(TeamStore);
 
   readonly state = toSignal(this.store.rawState$, { requireSync: true });
 
@@ -25,6 +29,88 @@ export class PokemonTableComponent {
   readonly skeletonRows = Array(8).fill(0);
   
   readonly pokemonTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
+
+  readonly localTeams = signal<{name: string, pokemon: (Pokemon | undefined)[]}[]>([
+    { name: 'Team 1', pokemon: new Array(6).fill(undefined) }
+  ]);
+  readonly activeTeamIndex = signal<number>(0);
+  
+  readonly allTeamNames = computed(() => this.localTeams().map(t => t.name));
+  readonly teamName = computed(() => this.localTeams()[this.activeTeamIndex()].name);
+  readonly dockedTeam = computed(() => this.localTeams()[this.activeTeamIndex()].pokemon);
+
+  onDropPokemon(event: { pokemon: Pokemon, index: number }): void {
+    const teams = [...this.localTeams()];
+    const currentTeam = { ...teams[this.activeTeamIndex()] };
+    const currentPokes = [...currentTeam.pokemon];
+    currentPokes[event.index] = event.pokemon;
+    currentTeam.pokemon = currentPokes;
+    teams[this.activeTeamIndex()] = currentTeam;
+    this.localTeams.set(teams);
+  }
+
+  removePokemon(index: number): void {
+    const teams = [...this.localTeams()];
+    const currentTeam = { ...teams[this.activeTeamIndex()] };
+    const currentPokes = [...currentTeam.pokemon];
+    currentPokes[index] = undefined;
+    currentTeam.pokemon = currentPokes;
+    teams[this.activeTeamIndex()] = currentTeam;
+    this.localTeams.set(teams);
+  }
+
+  onSelectTeam(name: string): void {
+    const idx = this.localTeams().findIndex(t => t.name === name);
+    if (idx !== -1) {
+      this.activeTeamIndex.set(idx);
+    }
+  }
+
+  onRenameTeam(name: string): void {
+    const teams = [...this.localTeams()];
+    const currentTeam = { ...teams[this.activeTeamIndex()] };
+    currentTeam.name = name;
+    teams[this.activeTeamIndex()] = currentTeam;
+    this.localTeams.set(teams);
+  }
+
+  onCreateTeam(): void {
+    const name = prompt('Enter new team name:');
+    if (name) {
+      const teams = [...this.localTeams()];
+      teams.push({ name, pokemon: new Array(6).fill(undefined) });
+      this.localTeams.set(teams);
+      this.activeTeamIndex.set(teams.length - 1);
+    }
+  }
+
+  onNextTeam(): void {
+    const current = this.activeTeamIndex();
+    if (current < this.localTeams().length - 1) {
+      this.activeTeamIndex.set(current + 1);
+    }
+  }
+
+  onPrevTeam(): void {
+    const current = this.activeTeamIndex();
+    if (current > 0) {
+      this.activeTeamIndex.set(current - 1);
+    }
+  }
+
+  onAddTeam(): void {
+    // Save current active team to the actual backend store
+    const active = this.localTeams()[this.activeTeamIndex()];
+    this.teamStore.addTeamOptimistic({
+      name: active.name,
+      trainer_id: 1,
+      pokemon_ids: active.pokemon.filter(p => !!p).map(p => p!.id)
+    });
+    // Clear local dock
+    const teams = [...this.localTeams()];
+    teams[this.activeTeamIndex()] = { name: active.name, pokemon: new Array(6).fill(undefined) };
+    this.localTeams.set(teams);
+  }
 
   get activePokemon(): Pokemon | null {
     return this.state().selectedPokemon || this.pokemonList()[0] || null;

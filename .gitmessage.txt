@@ -1,0 +1,8 @@
+feat(pokedex): implement team builder dock with drag-and-drop and navigation
+
+- Add a footer TeamDockComponent enabling drag-and-drop Pokémon team building
+- Configure individual cdkDropList zones for exactly targeted drops into all 6 team slots
+- Introduce local signal arrays in the table component to seamlessly toggle between multiple teams
+- Implement an interactive native <select> dropdown hidden over the team label for rapid switching
+- Enhance TeamStore with active team tracking and API-driven initialization logic via GraphQL
+- Expand TeamApiService with full querying capabilities for Teams and Trainers
