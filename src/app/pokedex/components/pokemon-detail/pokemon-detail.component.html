@@ -1,0 +1,20 @@
+@if (selectedPokemon()) {
+  <div class="pokemon-detail-overlay" (click)="closePanel()"></div>
+  <aside class="pokemon-detail-panel" [class.open]="!!selectedPokemon()">
+    <header class="panel-header">
+      <h2>{{ selectedPokemon()?.name | titlecase }}</h2>
+      <button class="btn-close" (click)="closePanel()" aria-label="Close panel">×</button>
+    </header>
+    
+    <div class="panel-content">
+      <div class="artwork-container">
+        <img [src]="getAvatarUrl(selectedPokemon()!.id)" [alt]="selectedPokemon()?.name" class="artwork">
+      </div>
+      
+      <div class="stats-container">
+        <h3>Base Stats</h3>
+        <div echarts [options]="chartOption()" class="radar-chart"></div>
+      </div>
+    </div>
+  </aside>
+}

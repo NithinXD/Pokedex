@@ -1,0 +1,33 @@
+<div class="pokedex-container">
+  <header class="pokedex-header">
+    <h1>Pokédex</h1>
+    <div class="search-bar">
+      <!-- Search input to be implemented later if needed -->
+    </div>
+  </header>
+
+  <app-ui-state 
+    [isLoading]="state().isLoading" 
+    [error]="state().error" 
+    [isEmpty]="state().pokemonList.length === 0 && !state().isLoading"
+    emptyMessage="No Pokémon found in the region."
+    (retry)="retryLoad()">
+    
+    <div class="pokemon-grid">
+      @for (pokemon of state().pokemonList; track pokemon.id) {
+        <div class="pokemon-card" (click)="selectPokemon(pokemon)" [class.selected]="state().selectedPokemon?.id === pokemon.id">
+          <div class="pokemon-image">
+            <img [src]="getAvatarUrl(pokemon.id)" [alt]="pokemon.name" loading="lazy">
+          </div>
+          <div class="pokemon-info">
+            <span class="pokemon-id">#{{ pokemon.id.toString().padStart(3, '0') }}</span>
+            <h3 class="pokemon-name">{{ pokemon.name | titlecase }}</h3>
+          </div>
+        </div>
+      }
+    </div>
+  </app-ui-state>
+</div>
+
+<!-- Slide-in detail panel -->
+<app-pokemon-detail></app-pokemon-detail>
