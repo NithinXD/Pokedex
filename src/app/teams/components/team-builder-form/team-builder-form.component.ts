@@ -62,7 +62,25 @@ export class TeamBuilderFormComponent {
           map(state => {
             const allPokes = state.pokemonList;
             const lowerQ = q.toLowerCase().trim();
-            return allPokes.filter((p: Pokemon) => p.name.toLowerCase().includes(lowerQ) || p.id.toString() === lowerQ).slice(0, 5);
+            const sortBy = state.sortBy;
+            const sortOrder = state.sortOrder;
+
+            return allPokes
+              .filter((p: Pokemon) => p.name.toLowerCase().includes(lowerQ) || p.id.toString() === lowerQ)
+              .sort((a: Pokemon, b: Pokemon) => {
+                const aStarts = a.name.toLowerCase().startsWith(lowerQ) || a.id.toString() === lowerQ ? 0 : 1;
+                const bStarts = b.name.toLowerCase().startsWith(lowerQ) || b.id.toString() === lowerQ ? 0 : 1;
+                if (aStarts !== bStarts) return aStarts - bStarts;
+                
+                let res = 0;
+                if (sortBy === 'name') {
+                  res = a.name.localeCompare(b.name);
+                } else {
+                  res = a.id - b.id;
+                }
+                return sortOrder === 'desc' ? -res : res;
+              })
+              .slice(0, 5);
           }),
           first()
         );

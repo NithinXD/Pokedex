@@ -14,6 +14,13 @@ export class PokemonSelectors {
           .filter(p => !selectedType || (p.types && p.types.includes(selectedType)))
           // 3. Sorting Logic
           .sort((a, b) => {
+            const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
+            if (query) {
+              const aStarts = a.name.toLowerCase().startsWith(query) || a.id.toString() === query ? 0 : 1;
+              const bStarts = b.name.toLowerCase().startsWith(query) || b.id.toString() === query ? 0 : 1;
+              if (aStarts !== bStarts) return aStarts - bStarts;
+            }
+
             let res = 0;
             if (sortBy === 'name') {
               res = a.name.localeCompare(b.name);

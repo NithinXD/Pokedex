@@ -61,8 +61,27 @@ export class PokemonTableComponent {
 
   readonly modalFilteredPokemon = computed(() => {
     const q = this.modalSearchQuery().toLowerCase().trim();
-    if (!q) return this.pokemonList();
-    return this.pokemonList().filter(p => p.name.toLowerCase().includes(q) || p.id.toString() === q);
+    const allPokes = this.state().pokemonList;
+    if (!q) return allPokes;
+    
+    const sortBy = this.state().sortBy;
+    const sortOrder = this.state().sortOrder;
+
+    return allPokes
+      .filter(p => p.name.toLowerCase().includes(q) || p.id.toString() === q)
+      .sort((a, b) => {
+        const aStarts = a.name.toLowerCase().startsWith(q) || a.id.toString() === q ? 0 : 1;
+        const bStarts = b.name.toLowerCase().startsWith(q) || b.id.toString() === q ? 0 : 1;
+        if (aStarts !== bStarts) return aStarts - bStarts;
+        
+        let res = 0;
+        if (sortBy === 'name') {
+          res = a.name.localeCompare(b.name);
+        } else {
+          res = a.id - b.id;
+        }
+        return sortOrder === 'desc' ? -res : res;
+      });
   });
 
   constructor() {
