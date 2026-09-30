@@ -6,6 +6,7 @@ import { Pokemon } from '../models/pokemon.model';
 export interface PokemonState {
   pokemonList: Pokemon[];
   selectedPokemon: Pokemon | null;
+  detailPanelPokemon: Pokemon | null;
   searchQuery: string;
   selectedType: string | null;
   isLoading: boolean;
@@ -15,6 +16,7 @@ export interface PokemonState {
 const initialState: PokemonState = {
   pokemonList: [],
   selectedPokemon: null,
+  detailPanelPokemon: null,
   searchQuery: '',
   selectedType: null,
   isLoading: false,
@@ -58,10 +60,17 @@ export class PokemonStore {
   }
 
   /**
-   * Selects a single Pokémon for the side-panel detail view.
+   * Highlights a single Pokémon in the Pokédex list view (without opening side panel).
    */
   selectPokemon(pokemon: Pokemon | null): void {
     this.patchState({ selectedPokemon: pokemon });
+  }
+
+  /**
+   * Explicitly opens/closes the side-panel base stats radar chart modal.
+   */
+  openDetailPanel(pokemon: Pokemon | null): void {
+    this.patchState({ detailPanelPokemon: pokemon });
   }
 
   private patchState(partial: Partial<PokemonState>): void {

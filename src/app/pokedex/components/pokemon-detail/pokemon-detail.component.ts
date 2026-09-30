@@ -20,6 +20,7 @@ export class PokemonDetailComponent {
     initialValue: {
       pokemonList: [],
       selectedPokemon: null,
+      detailPanelPokemon: null,
       searchQuery: '',
       selectedType: null,
       isLoading: false,
@@ -27,14 +28,12 @@ export class PokemonDetailComponent {
     }
   });
 
-  readonly selectedPokemon = computed(() => this.state().selectedPokemon);
+  readonly selectedPokemon = computed(() => this.state().detailPanelPokemon);
 
   readonly chartOption = computed<EChartsOption>(() => {
     const pokemon = this.selectedPokemon();
     if (!pokemon) return {};
 
-    // Mock stats since the basic API query only returned id and name
-    // In a real app we would fetch the stats array from PokéAPI
     const mockStats = [
       { name: 'HP', value: Math.floor(Math.random() * 60) + 40 },
       { name: 'Attack', value: Math.floor(Math.random() * 80) + 40 },
@@ -65,7 +64,7 @@ export class PokemonDetailComponent {
   });
 
   closePanel(): void {
-    this.store.selectPokemon(null);
+    this.store.openDetailPanel(null);
   }
 
   getAvatarUrl(id: number): string {

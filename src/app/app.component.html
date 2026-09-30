@@ -1,15 +1,42 @@
-<nav class="main-nav">
-  <div class="nav-container">
-    <div class="brand">
-      <a routerLink="/pokedex">Pokédex</a>
+<!-- Pokédex Handheld Top Control Panel -->
+<header class="pokedex-top-control-bar">
+  <div class="camera-lens-container" (click)="toggleMenu()" title="Click to open menu">
+    <!-- Big Blue Glowing Lens -->
+    <div class="big-blue-lens">
+      <div class="lens-glint"></div>
     </div>
-    <ul class="nav-links">
-      <li><a routerLink="/pokedex" routerLinkActive="active">Pokédex</a></li>
-      <li><a routerLink="/teams" routerLinkActive="active">My Teams</a></li>
-    </ul>
+    <!-- Three Indicator Lights (Red, Yellow, Green) -->
+    <div class="indicator-lights">
+      <span class="light red"></span>
+      <span class="light yellow"></span>
+      <span class="light green"></span>
+    </div>
   </div>
-</nav>
 
-<main class="app-content">
+  <div class="pokedex-title-badge">
+    KANTO POKÉDEX v1.0
+  </div>
+
+  <!-- Interactive Retro Menu Dropdown -->
+  @if (isMenuOpen()) {
+    <div class="pokedex-menu-dropdown retro-box">
+      <div class="menu-header">NAV MENU</div>
+      <ul class="menu-options">
+        <li>
+          <a routerLink="/pokedex" (click)="closeMenu()" class="menu-item active">
+            <span>► POKÉDEX</span>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/teams" (click)="closeMenu()" class="menu-item">
+            <span>► MY TEAMS</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  }
+</header>
+
+<main class="app-content" (click)="isMenuOpen() ? closeMenu() : null">
   <router-outlet></router-outlet>
 </main>

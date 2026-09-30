@@ -1,33 +1,85 @@
-<div class="pokedex-container">
-  <header class="pokedex-header">
-    <h1>Pokédex</h1>
-    <div class="search-bar">
-      <!-- Search input to be implemented later if needed -->
-    </div>
+<div class="kanto-pokedex-frame">
+  <!-- Top Red Header -->
+  <header class="pokedex-top-bar">
+    <div class="top-title">Kanto Pokédex</div>
   </header>
 
-  <app-ui-state 
-    [isLoading]="state().isLoading" 
-    [error]="state().error" 
-    [isEmpty]="state().pokemonList.length === 0 && !state().isLoading"
-    emptyMessage="No Pokémon found in the region."
-    (retry)="retryLoad()">
+  <!-- Main Dual Screen Content -->
+  <div class="pokedex-screen-body">
     
-    <div class="pokemon-grid">
-      @for (pokemon of state().pokemonList; track pokemon.id) {
-        <div class="pokemon-card" (click)="selectPokemon(pokemon)" [class.selected]="state().selectedPokemon?.id === pokemon.id">
-          <div class="pokemon-image">
-            <img [src]="getAvatarUrl(pokemon.id)" [alt]="pokemon.name" loading="lazy">
-          </div>
-          <div class="pokemon-info">
-            <span class="pokemon-id">#{{ pokemon.id.toString().padStart(3, '0') }}</span>
-            <h3 class="pokemon-name">{{ pokemon.name | titlecase }}</h3>
-          </div>
+    <!-- Left Screen: Display 2D Sprite Preview & Pokédex Entry Description -->
+    <div class="left-screen">
+      <div class="preview-header">
+        <span class="preview-name">
+          {{ (activePokemon?.name || '---') | uppercase }}
+        </span>
+      </div>
+
+      <div class="display-box">
+        <div class="grid-background"></div>
+        <div class="pokeball-bg"></div>
+        @if (activePokemon) {
+          <img 
+            [src]="get2dSpriteUrl(activePokemon.id)" 
+            [alt]="activePokemon.name" 
+            class="pokemon-sprite-2d"
+          >
+        } @else {
+          <div class="no-pokemon">---</div>
+        }
+      </div>
+
+      <!-- Description Box with Manual View Base Stats Button -->
+      <div class="description-box">
+        <div class="desc-header">
+          <span class="desc-title">Entry Details</span>
+          @if (activePokemon) {
+            <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
+              BASE STATS Radar ★
+            </button>
+          }
         </div>
-      }
+        <div class="desc-text">
+          {{ getPokemonDescription(activePokemon?.name || '') }}
+        </div>
+      </div>
     </div>
-  </app-ui-state>
+
+    <!-- Right Screen: Scrollable Pokemon List -->
+    <div class="right-screen">
+      <div class="red-side-stripe"></div>
+      
+      <div class="list-container" #listContainer (scroll)="updateScrollThumb()">
+        <app-ui-state 
+          [isLoading]="state().isLoading" 
+          [error]="state().error" 
+          [isEmpty]="state().pokemonList.length === 0 && !state().isLoading"
+          emptyMessage="No Pokémon found"
+          (retry)="retryLoad()">
+          
+          <div class="pokemon-list-rows">
+            @for (pokemon of state().pokemonList; track pokemon.id) {
+              <div 
+                class="list-row" 
+                [class.selected]="activePokemon?.id === pokemon.id"
+                (click)="selectPokemon(pokemon)">
+                <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
+                
+                <span class="icon-sprite-box">
+                  <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name">
+                </span>
+                
+                <span class="name">{{ pokemon.name | uppercase }}</span>
+              </div>
+            }
+          </div>
+        </app-ui-state>
+      </div>
+
+    </div>
+
+  </div>
 </div>
 
-<!-- Slide-in detail panel -->
+<!-- Base Stats Animated Radar Chart Modal -->
 <app-pokemon-detail></app-pokemon-detail>

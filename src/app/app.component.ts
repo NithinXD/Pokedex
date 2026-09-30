@@ -1,13 +1,22 @@
-import { Component } from '@angular/core';
-import { RouterModule, RouterOutlet } from '@angular/router';
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'mini-pokedex';
+  isMenuOpen = signal(false);
+
+  toggleMenu(): void {
+    this.isMenuOpen.update(v => !v);
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen.set(false);
+  }
 }
