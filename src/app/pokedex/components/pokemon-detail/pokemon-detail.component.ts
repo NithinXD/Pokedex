@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
-import { PokemonStore } from '../../state/pokemon.store';
+import { PokemonStore, PokemonState } from '../../state/pokemon.store';
 
 @Component({
   selector: 'app-pokemon-detail',
@@ -16,17 +16,7 @@ import { PokemonStore } from '../../state/pokemon.store';
 export class PokemonDetailComponent {
   private readonly store = inject(PokemonStore);
 
-  readonly state = toSignal(this.store.rawState$, {
-    initialValue: {
-      pokemonList: [],
-      selectedPokemon: null,
-      detailPanelPokemon: null,
-      searchQuery: '',
-      selectedType: null,
-      isLoading: false,
-      error: null
-    }
-  });
+  readonly state = toSignal(this.store.rawState$, { requireSync: true });
 
   readonly selectedPokemon = computed(() => this.state().detailPanelPokemon);
 

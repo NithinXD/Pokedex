@@ -9,6 +9,8 @@ export interface PokemonState {
   detailPanelPokemon: Pokemon | null;
   searchQuery: string;
   selectedType: string | null;
+  sortBy: 'id' | 'name';
+  sortOrder: 'asc' | 'desc';
   isLoading: boolean;
   error: string | null;
 }
@@ -19,6 +21,8 @@ const initialState: PokemonState = {
   detailPanelPokemon: null,
   searchQuery: '',
   selectedType: null,
+  sortBy: 'id',
+  sortOrder: 'asc',
   isLoading: false,
   error: null
 };
@@ -57,6 +61,27 @@ export class PokemonStore {
    */
   setSearchQuery(query: string): void {
     this.patchState({ searchQuery: query });
+  }
+
+  /**
+   * Sets type filter.
+   */
+  setTypeFilter(type: string | null): void {
+    this.patchState({ selectedType: type });
+  }
+
+  /**
+   * Sets sorting criteria.
+   */
+  setSortBy(sortBy: 'id' | 'name'): void {
+    this.patchState({ sortBy });
+  }
+
+  /**
+   * Toggles or sets sort order.
+   */
+  setSortOrder(sortOrder: 'asc' | 'desc'): void {
+    this.patchState({ sortOrder });
   }
 
   /**

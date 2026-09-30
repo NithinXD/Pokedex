@@ -1,170 +1,75 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { PokemonStore } from '../../state/pokemon.store';
-import { UiStateComponent } from '../../../common/components/ui-state/ui-state.component';
+import { PokemonStore, PokemonState } from '../../state/pokemon.store';
 import { Pokemon } from '../../models/pokemon.model';
+import { PokemonSelectors } from '../../state/pokemon.selectors';
 import { PokemonDetailComponent } from '../pokemon-detail/pokemon-detail.component';
 
 @Component({
   selector: 'app-pokemon-table',
   standalone: true,
-  imports: [CommonModule, UiStateComponent, PokemonDetailComponent],
+  imports: [CommonModule, ScrollingModule, PokemonDetailComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pokemon-table.component.html',
-  styleUrl: './pokemon-table.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './pokemon-table.component.scss'
 })
 export class PokemonTableComponent {
-  private readonly store = inject(PokemonStore);
+  readonly store = inject(PokemonStore);
 
-  @ViewChild('listContainer') listContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('trackRef') trackRef!: ElementRef<HTMLDivElement>;
+  readonly state = toSignal(this.store.rawState$, { requireSync: true });
 
-  thumbTop = 0;
-  isDragging = false;
+  readonly pokemonList = toSignal(PokemonSelectors.selectFilteredPokemon(this.store), { initialValue: [] });
 
-  readonly state = toSignal(this.store.rawState$, {
-    initialValue: {
-      pokemonList: [],
-      selectedPokemon: null,
-      detailPanelPokemon: null,
-      searchQuery: '',
-      selectedType: null,
-      isLoading: true,
-      error: null
-    }
-  });
+  readonly skeletonRows = Array(8).fill(0);
+  
+  readonly pokemonTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
 
   get activePokemon(): Pokemon | null {
-    return this.state().selectedPokemon || this.state().pokemonList[0] || null;
-  }
-
-  retryLoad(): void {
-    this.store.loadPokemonList();
+    return this.state().selectedPokemon || this.pokemonList()[0] || null;
   }
 
   selectPokemon(pokemon: Pokemon): void {
     this.store.selectPokemon(pokemon);
-    // Sync scroll so the slider highlights the current selection correctly
-    this.syncScrollToSelection(pokemon.id);
+  }
+
+  trackById(_index: number, pokemon: Pokemon): number {
+    return pokemon.id;
+  }
+  
+  get2dSpriteUrl(id: number): string {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  }
+
+  getGlitchSpriteUrl(): string {
+    // MissingNo substitute sprite
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/substitute.png`;
+  }
+  
+  onSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.store.setSearchQuery(input.value);
+  }
+  
+  onTypeChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.store.setTypeFilter(select.value || null);
+  }
+  
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.store.setSortBy(select.value as 'id' | 'name');
+  }
+  
+  onOrderChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.store.setSortOrder(select.value as 'asc' | 'desc');
   }
 
   openStatsModal(pokemon: Pokemon, event?: MouseEvent): void {
     if (event) event.stopPropagation();
     this.store.openDetailPanel(pokemon);
-  }
-
-  scrollUp(event: MouseEvent): void {
-    event.stopPropagation();
-    this.navigatePokemon(-1);
-  }
-
-  scrollDown(event: MouseEvent): void {
-    event.stopPropagation();
-    this.navigatePokemon(1);
-  }
-
-  private navigatePokemon(direction: number): void {
-    const list = this.state().pokemonList;
-    if (!list.length) return;
-
-    const currentId = this.activePokemon?.id ?? list[0].id;
-    const currentIndex = list.findIndex(p => p.id === currentId);
-    let nextIndex = currentIndex + direction;
-
-    if (nextIndex < 0) nextIndex = 0;
-    if (nextIndex >= list.length) nextIndex = list.length - 1;
-
-    const targetPokemon = list[nextIndex];
-    this.selectPokemon(targetPokemon);
-    this.scrollToPokemonRow(targetPokemon.id);
-  }
-
-  updateScrollThumb(): void {
-    const el = this.listContainer?.nativeElement;
-    if (!el) return;
-
-    // 1. Update Scrollbar Thumb Position smoothly with scroll
-    const scrollableHeight = el.scrollHeight - el.clientHeight;
-    const scrollRatio = scrollableHeight > 0 ? el.scrollTop / scrollableHeight : 0;
-    
-    if (scrollableHeight > 0) {
-      const trackHeight = this.trackRef?.nativeElement ? this.trackRef.nativeElement.clientHeight - 44 : 460;
-      this.thumbTop = Math.min(trackHeight, Math.max(0, scrollRatio * trackHeight));
-    }
-
-    // 2. Auto Select current row in view
-    const list = this.state().pokemonList;
-    if (!list.length || this.isDragging) return;
-
-    // Proportional selection: Maps scroll exactly from 0 to list.length - 1
-    // This allows first and last items to be selected without any extra padding.
-    const index = Math.round(scrollRatio * (list.length - 1));
-    const closestPokemon = list[index];
-
-    if (closestPokemon && closestPokemon.id !== this.activePokemon?.id) {
-      this.store.selectPokemon(closestPokemon);
-    }
-  }
-
-  startDrag(event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragging = true;
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!this.isDragging) return;
-      this.handleScrollbarMove(e.clientY);
-    };
-
-    const onMouseUp = () => {
-      this.isDragging = false;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  }
-
-  onScrollbarTrackClick(event: MouseEvent): void {
-    if (this.isDragging) return;
-    this.handleScrollbarMove(event.clientY);
-  }
-
-  private handleScrollbarMove(clientY: number): void {
-    const el = this.listContainer?.nativeElement;
-    const track = this.trackRef?.nativeElement;
-    if (!el || !track) return;
-
-    const rect = track.getBoundingClientRect();
-    const offsetY = clientY - rect.top;
-    const ratio = Math.max(0, Math.min(1, offsetY / rect.height));
-
-    el.scrollTop = ratio * (el.scrollHeight - el.clientHeight);
-  }
-
-  private scrollToPokemonRow(id: number): void {
-    this.syncScrollToSelection(id);
-  }
-
-  private syncScrollToSelection(id: number): void {
-    const el = this.listContainer?.nativeElement;
-    if (!el) return;
-
-    const list = this.state().pokemonList;
-    const index = list.findIndex(p => p.id === id);
-    if (index === -1) return;
-
-    const scrollableHeight = el.scrollHeight - el.clientHeight;
-    if (scrollableHeight > 0) {
-      const ratio = index / (list.length - 1);
-      el.scrollTo({ top: ratio * scrollableHeight, behavior: 'smooth' });
-    }
-  }
-
-  get2dSpriteUrl(id: number): string {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
   }
 
   getPokemonDescription(name: string): string {

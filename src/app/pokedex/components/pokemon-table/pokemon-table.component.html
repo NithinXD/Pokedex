@@ -1,14 +1,57 @@
-<div class="kanto-pokedex-frame">
-  <!-- Top Red Header -->
-  <header class="pokedex-top-bar">
-    <div class="top-title">Kanto Pokédex</div>
-  </header>
-
-  <!-- Main Dual Screen Content -->
+﻿<div class="kanto-pokedex-frame">
+  
+  <!-- Main 3-Column Screen Content -->
   <div class="pokedex-screen-body">
     
-    <!-- Left Screen: Display 2D Sprite Preview & Pokédex Entry Description -->
-    <div class="left-screen">
+    <!-- Leftmost Column: Sort & Filter Panel -->
+    <div class="sidebar-screen">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Filters</span>
+      </div>
+      <div class="sidebar-content">
+        <div class="form-group">
+          <label>Search PokÃ©mon</label>
+          <input type="text" placeholder="Name or ID..." [value]="state().searchQuery" (input)="onSearch($event)">
+        </div>
+        
+        <div class="form-group">
+          <label>Type Filter</label>
+          <select [value]="state().selectedType || ''" (change)="onTypeChange($event)">
+            <option value="">All Types</option>
+            @for(t of pokemonTypes; track t) {
+              <option [value]="t">{{ t | uppercase }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Sort By</label>
+          <select [value]="state().sortBy" (change)="onSortChange($event)">
+            <option value="id">ID #</option>
+            <option value="name">Name</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Order</label>
+          <select [value]="state().sortOrder" (change)="onOrderChange($event)">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Right Content Wrapper -->
+    <div class="main-content-area">
+      <!-- Moved Kanto Header -->
+      <div class="main-screens-header">
+        <span class="header-title">Kanto PokÃ©dex</span>
+      </div>
+
+      <div class="screens-container">
+        <!-- Left Screen: Display 2D Sprite Preview & PokÃ©dex Entry Description -->
+        <div class="left-screen">
       <div class="preview-header">
         <span class="preview-name">
           {{ (activePokemon?.name || '---') | uppercase }}
@@ -19,23 +62,31 @@
         <div class="grid-background"></div>
         <div class="pokeball-bg"></div>
         
-        <!-- Type Badges Overlay -->
-        @if (activePokemon?.types) {
-          <div class="type-badges">
-            @for (type of activePokemon?.types; track type) {
-              <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
-            }
-          </div>
-        }
-
-        @if (activePokemon) {
+        @if (state().isLoading) {
           <img 
-            [src]="get2dSpriteUrl(activePokemon.id)" 
-            [alt]="activePokemon.name" 
-            class="pokemon-sprite-2d"
+            [src]="getGlitchSpriteUrl()" 
+            alt="Loading..." 
+            class="pokemon-sprite-2d shimmer-sprite"
           >
         } @else {
-          <div class="no-pokemon">---</div>
+          @if (activePokemon) {
+            <!-- Type Badges Overlay -->
+            @if (activePokemon.types) {
+              <div class="type-badges">
+                @for (type of activePokemon.types; track type) {
+                  <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
+                }
+              </div>
+            }
+
+            <img 
+              [src]="get2dSpriteUrl(activePokemon.id)" 
+              [alt]="activePokemon.name" 
+              class="pokemon-sprite-2d"
+            >
+          } @else {
+            <div class="no-pokemon">---</div>
+          }
         }
       </div>
 
@@ -45,7 +96,7 @@
           <span class="desc-title">Entry Details</span>
           @if (activePokemon) {
             <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
-              BASE STATS Radar ★
+              BASE STATS Radar â˜…
             </button>
           }
         </div>
@@ -59,50 +110,55 @@
     <div class="right-screen">
       <div class="red-side-stripe"></div>
       
-      <div class="list-container" #listContainer (scroll)="updateScrollThumb()">
-        <app-ui-state 
-          [isLoading]="state().isLoading" 
-          [error]="state().error" 
-          [isEmpty]="state().pokemonList.length === 0 && !state().isLoading"
-          emptyMessage="No Pokémon found"
-          (retry)="retryLoad()">
-          
-          <div class="pokemon-list-rows">
-            @for (pokemon of state().pokemonList; track pokemon.id) {
-              <div 
-                class="list-row" 
-                [class.selected]="activePokemon?.id === pokemon.id"
-                (click)="selectPokemon(pokemon)">
-                <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
-                
-                <span class="icon-sprite-box">
-                  <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name">
-                </span>
-                
-                <span class="name">{{ pokemon.name | uppercase }}</span>
+      <div class="list-container">
+        <!-- LOADING STATE, EMPTY STATE, SUCCESS STATE -->
+        @if (state().isLoading) {
+          <div class="skeleton-container">
+            @for (i of skeletonRows; track $index) {
+              <div class="skeleton-row shimmer">
+                <div class="sk-badge"></div>
+                <div class="sk-num"></div>
+                <div class="sk-name"></div>
               </div>
             }
           </div>
-        </app-ui-state>
+        } @else if (pokemonList().length === 0) {
+          <div class="empty-state">
+            <p>No PokÃ©mon found</p>
+          </div>
+        } @else {
+          <cdk-virtual-scroll-viewport 
+            itemSize="96" 
+            minBufferPx="200" 
+            maxBufferPx="400" 
+            class="pokedex-virtual-viewport"
+            #listContainer
+          >
+            <div 
+              *cdkVirtualFor="let pokemon of pokemonList(); trackBy: trackById" 
+              class="list-row"
+              [class.selected]="activePokemon?.id === pokemon.id"
+              (click)="selectPokemon(pokemon)"
+            >
+              <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
+              
+              <span class="icon-sprite-box">
+                <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name">
+              </span>
+              
+              <span class="name">{{ pokemon.name | uppercase }}</span>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        }
       </div>
-
     </div>
+  </div> <!-- closes screens-container -->
+  </div> <!-- closes main-content-area -->
+  </div> <!-- closes pokedex-screen-body -->
 
-    <!-- Interactive Functional Right Scrollbar (Slider) -->
-    <div class="retro-scrollbar" (click)="onScrollbarTrackClick($event)">
-      <div class="scroll-btn" (click)="scrollUp($event)">▲</div>
-      <div class="track" #trackRef>
-        <div 
-          class="scroll-thumb" 
-          [style.top.px]="thumbTop"
-          (mousedown)="startDrag($event)">
-        </div>
-      </div>
-      <div class="scroll-btn" (click)="scrollDown($event)">▼</div>
-    </div>
-
-  </div>
-</div>
+  <!-- Red Footer -->
+  <div class="pokedex-footer"></div>
+</div> <!-- closes kanto-pokedex-frame -->
 
 <!-- Base Stats Animated Radar Chart Modal -->
 <app-pokemon-detail></app-pokemon-detail>
