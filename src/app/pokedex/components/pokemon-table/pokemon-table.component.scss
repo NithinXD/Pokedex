@@ -1,4 +1,4 @@
-:host {
+﻿:host {
   display: block;
   width: 100%;
   height: 100%;
@@ -408,6 +408,15 @@
     }
   }
 
+  .cdk-drag-placeholder {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border: 4px dashed #888 !important;
+    box-shadow: none !important;
+    color: transparent !important;
+    transition: none !important;
+    * { opacity: 0 !important; }
+  }
   .list-row {
     display: flex;
     align-items: center;
@@ -441,9 +450,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #ffffff
-        url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/substitute.png')
-        center / 48px 48px no-repeat;
+      background: #ffffff;
       border: 3px solid #1a1a1a;
       border-radius: 6px;
       margin-right: 18px;
@@ -570,62 +577,6 @@
   align-items: center;
   justify-content: center;
   padding: 0 24px;
-}
-
-.generic-modal-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.generic-modal-content {
-  background: #f0f0f0;
-  border: 4px solid #1a1a1a;
-  border-radius: 8px;
-  padding: 24px;
-  width: 400px;
-  max-width: 90vw;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
-  color: #1a1a1a;
-
-  h2 {
-    color: #1a1a1a;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: -12px;
-    right: -12px;
-    background: #dc0a2d;
-    color: white;
-    border: 2px solid #1a1a1a;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 2px 2px 0px #1a1a1a;
-  }
-}
-
-.modal-text-input {
-  width: 100%;
-  padding: 8px;
-  border: 2px solid #1a1a1a;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 16px;
-  box-sizing: border-box;
-  color: #1a1a1a;
-  background: #fff;
 }
 
 .modal-list {
@@ -801,3 +752,9 @@
     }
   }
 }
+
+
+
+
+
+

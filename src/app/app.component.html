@@ -15,8 +15,31 @@
 
   <div class="pokedex-title-badge">
     KANTO POKÉDEX v1.0
+    <button class="info-btn" (click)="showInfo = true" title="Help">?</button>
   </div>
 </header>
+
+@if (showInfo) {
+  <div class="generic-modal-backdrop" (click)="showInfo = false" style="z-index: 9999;">
+    <div class="generic-modal-content" (click)="$event.stopPropagation()" style="max-width: 500px;">
+      <button class="close-btn" (click)="showInfo = false">X</button>
+      <h2 style="margin-top: 0; text-align: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; font-size: 14px;">Pokédex Help</h2>
+      
+      <div style="margin-top: 16px; font-size: 9px; line-height: 1.6; max-height: 400px; overflow-y: auto; padding-right: 8px; text-align: left;">
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
+          <li><strong style="color: #dc0a2d;">DRAG & DROP:</strong> Drag Pokémon sprites directly from the main display or the right-side list into the 6 Pokéball slots at the bottom dock to build your team.</li>
+          <li><strong style="color: #dc0a2d;">NEW TEAM:</strong> Click the <span style="background: #1a1a1a; color: white; padding: 2px 4px; border-radius: 2px;">+</span> button on the left of the dock to create a new team.</li>
+          <li><strong style="color: #dc0a2d;">CHANGE NAME:</strong> Click the current team's name (e.g. <em>TEAM : Pro</em>) in the dock to rename it.</li>
+          <li><strong style="color: #dc0a2d;">NAVIGATE TEAMS:</strong> Use the Left (◄) and Right (►) arrow buttons on the dock to switch between your saved teams.</li>
+          <li><strong style="color: #dc0a2d;">STATS BUTTON:</strong> Click the yellow STATS button in the main viewer to open a detailed Radar Chart and view abilities.</li>
+          <li><strong style="color: #dc0a2d;">BST (Base Stat Total):</strong> The sum of a Pokémon's core stats (HP, Atk, Def, SpA, SpD, Spe). The dock shows your team's total BST!</li>
+        </ul>
+      </div>
+      
+      <button class="retro-btn-save" (click)="showInfo = false" style="margin-top: 24px; width: 100%;">GOT IT!</button>
+    </div>
+  </div>
+}
 
 <main class="app-content">
   <router-outlet></router-outlet>

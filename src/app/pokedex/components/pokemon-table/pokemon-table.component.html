@@ -72,7 +72,11 @@
         }
       </div>
 
-      <div class="display-box">
+      <div class="display-box"
+        cdkDropList 
+        [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
+        [cdkDropListSortingDisabled]="true"
+      >
         <div class="grid-background"></div>
         <div class="pokeball-bg"></div>
         
@@ -93,11 +97,19 @@
               </div>
             }
 
-            <img 
-              [src]="get2dSpriteUrl(activePokemon.id)" 
-              [alt]="activePokemon.name" 
-              class="pokemon-sprite-2d"
+            <div 
+              cdkDrag
+              [cdkDragData]="activePokemon"
+              style="cursor: grab; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2;"
             >
+              <img 
+                [src]="get2dSpriteUrl(activePokemon.id)" 
+                [alt]="activePokemon.name" 
+                class="pokemon-sprite-2d"
+                (error)="$any($event.target).src = getGlitchSpriteUrl()"
+              >
+
+            </div>
           } @else {
             <div class="no-pokemon">---</div>
           }
@@ -166,14 +178,23 @@
               cdkDrag
               [cdkDragData]="pokemon"
             >
-              <div *cdkDragPreview class="drag-preview-sprite">
-                <img [src]="get2dSpriteUrl(pokemon.id)" width="60" height="60" style="filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5));">
-              </div>
+              <!-- Explicit Preview to avoid any scrollbar artifacts -->
+              <!-- Explicit Preview to avoid any scrollbar artifacts -->
+              <ng-template cdkDragPreview [matchSize]="true">
+                <div class="list-row drag-preview-row" style="overflow: hidden !important; margin: 0; padding: 12px 14px; box-sizing: border-box; width: 100%;">
+                  <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
+                  <span class="icon-sprite-box">
+                    <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name" (load)="$any($event.target).setAttribute('data-loaded', 'true')">
+                  </span>
+                  <span class="name">{{ pokemon.name | uppercase }}</span>
+                </div>
+              </ng-template>
 
               <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
               
               <span class="icon-sprite-box">
                 <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
+                  (load)="$any($event.target).setAttribute('data-loaded', 'true')" 
                   (error)="$any($event.target).src = getGlitchSpriteUrl()">
               </span>
               
@@ -262,5 +283,15 @@
     </div>
   </div>
 }
+
+
+
+
+
+
+
+
+
+
 
 

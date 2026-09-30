@@ -1,4 +1,4 @@
-﻿.team-builder-form {
+.team-builder-form {
   font-family: var(--font-game);
   display: flex;
   flex-direction: column;
@@ -19,25 +19,28 @@
 
 .retro-input {
   background: #ffffff;
-  border: 2px solid #1a1a1a;
-  border-radius: 4px;
-  padding: 8px;
-  font-family: inherit;
+  border: 3px solid #1a1a1a;
+  border-radius: 0;
+  padding: 8px 12px;
+  font-family: var(--font-game);
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
+  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.1);
 
   &:focus {
     outline: none;
-    border-color: #3b4cca;
+    border-color: #dc0a2d;
   }
 }
 
 .error-msg {
   color: #dc0a2d;
-  font-size: 12px;
+  font-family: var(--font-game);
+  font-size: 10px;
   display: flex;
   flex-direction: column;
+  margin-top: 4px;
 }
 
 .autocomplete-dropdown {
@@ -46,18 +49,18 @@
   left: 0;
   right: 0;
   background: #ffffff;
-  border: 2px solid #1a1a1a;
+  border: 3px solid #1a1a1a;
   border-top: none;
   max-height: 150px;
   overflow-y: auto;
   z-index: 10;
-  box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
 
   .autocomplete-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 8px;
+    padding: 6px 8px;
     cursor: pointer;
 
     &:hover {

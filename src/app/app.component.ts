@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { AudioService } from './common/services/audio.service';
@@ -12,8 +12,10 @@ import { AudioService } from './common/services/audio.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
+  showInfo = false;
   private readonly audioService = inject(AudioService);
 
   /** Exposed to template for CSS class binding */
   readonly isPlaying = this.audioService.isPlaying;
 }
+
