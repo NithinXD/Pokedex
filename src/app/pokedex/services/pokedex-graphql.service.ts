@@ -11,9 +11,14 @@ export class PokedexApiService {
   getPokemonList$(): Observable<Pokemon[]> {
     const query = `
       query GetPokemonList {
-        pokemon_v2_pokemon(limit: 50) {
+        pokemon_v2_pokemon(limit: 151) {
           id
           name
+          pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+              name
+            }
+          }
         }
       }
     `;
@@ -21,7 +26,8 @@ export class PokedexApiService {
     return this.http.post<any>(this.URL, { query }).pipe(
       map(response => response.data.pokemon_v2_pokemon.map((p: any) => ({
         id: p.id,
-        name: p.name
+        name: p.name,
+        types: p.pokemon_v2_pokemontypes.map((t: any) => t.pokemon_v2_type.name)
       })))
     );
   }

@@ -45,6 +45,8 @@ export class PokemonTableComponent {
 
   selectPokemon(pokemon: Pokemon): void {
     this.store.selectPokemon(pokemon);
+    // Sync scroll so the slider highlights the current selection correctly
+    this.syncScrollToSelection(pokemon.id);
   }
 
   openStatsModal(pokemon: Pokemon, event?: MouseEvent): void {
@@ -84,8 +86,9 @@ export class PokemonTableComponent {
 
     // 1. Update Scrollbar Thumb Position smoothly with scroll
     const scrollableHeight = el.scrollHeight - el.clientHeight;
+    const scrollRatio = scrollableHeight > 0 ? el.scrollTop / scrollableHeight : 0;
+    
     if (scrollableHeight > 0) {
-      const scrollRatio = el.scrollTop / scrollableHeight;
       const trackHeight = this.trackRef?.nativeElement ? this.trackRef.nativeElement.clientHeight - 44 : 460;
       this.thumbTop = Math.min(trackHeight, Math.max(0, scrollRatio * trackHeight));
     }
@@ -94,25 +97,12 @@ export class PokemonTableComponent {
     const list = this.state().pokemonList;
     if (!list.length || this.isDragging) return;
 
-    const rowElements = el.querySelectorAll('.list-row');
-    const containerTop = el.getBoundingClientRect().top;
-    const containerCenter = containerTop + el.clientHeight / 2;
+    // Proportional selection: Maps scroll exactly from 0 to list.length - 1
+    // This allows first and last items to be selected without any extra padding.
+    const index = Math.round(scrollRatio * (list.length - 1));
+    const closestPokemon = list[index];
 
-    let closestPokemon: Pokemon | null = null;
-    let minDistance = Infinity;
-
-    rowElements.forEach((rowEl, index) => {
-      const rect = rowEl.getBoundingClientRect();
-      const rowCenter = rect.top + rect.height / 2;
-      const distance = Math.abs(containerCenter - rowCenter);
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestPokemon = list[index];
-      }
-    });
-
-    if (closestPokemon && (closestPokemon as Pokemon).id !== this.activePokemon?.id) {
+    if (closestPokemon && closestPokemon.id !== this.activePokemon?.id) {
       this.store.selectPokemon(closestPokemon);
     }
   }
@@ -155,15 +145,21 @@ export class PokemonTableComponent {
   }
 
   private scrollToPokemonRow(id: number): void {
+    this.syncScrollToSelection(id);
+  }
+
+  private syncScrollToSelection(id: number): void {
     const el = this.listContainer?.nativeElement;
     if (!el) return;
 
     const list = this.state().pokemonList;
     const index = list.findIndex(p => p.id === id);
-    const rowElements = el.querySelectorAll('.list-row');
+    if (index === -1) return;
 
-    if (rowElements[index]) {
-      rowElements[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const scrollableHeight = el.scrollHeight - el.clientHeight;
+    if (scrollableHeight > 0) {
+      const ratio = index / (list.length - 1);
+      el.scrollTo({ top: ratio * scrollableHeight, behavior: 'smooth' });
     }
   }
 

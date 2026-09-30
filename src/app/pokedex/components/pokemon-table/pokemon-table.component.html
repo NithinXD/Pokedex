@@ -18,6 +18,16 @@
       <div class="display-box">
         <div class="grid-background"></div>
         <div class="pokeball-bg"></div>
+        
+        <!-- Type Badges Overlay -->
+        @if (activePokemon?.types) {
+          <div class="type-badges">
+            @for (type of activePokemon?.types; track type) {
+              <span class="type-badge" [attr.data-type]="type">{{ type | uppercase }}</span>
+            }
+          </div>
+        }
+
         @if (activePokemon) {
           <img 
             [src]="get2dSpriteUrl(activePokemon.id)" 
@@ -76,6 +86,19 @@
         </app-ui-state>
       </div>
 
+    </div>
+
+    <!-- Interactive Functional Right Scrollbar (Slider) -->
+    <div class="retro-scrollbar" (click)="onScrollbarTrackClick($event)">
+      <div class="scroll-btn" (click)="scrollUp($event)">▲</div>
+      <div class="track" #trackRef>
+        <div 
+          class="scroll-thumb" 
+          [style.top.px]="thumbTop"
+          (mousedown)="startDrag($event)">
+        </div>
+      </div>
+      <div class="scroll-btn" (click)="scrollDown($event)">▼</div>
     </div>
 
   </div>
