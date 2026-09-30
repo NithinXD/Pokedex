@@ -147,12 +147,40 @@
     padding: 14px 20px;
     box-shadow: 3px 3px 0px #000;
     flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     .preview-name {
       font-size: 16px;
       color: #1a1a1a;
       text-transform: uppercase;
       letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .retro-btn-stats {
+      font-family: var(--font-game);
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border: 3px solid #1a1a1a;
+      box-shadow: 2px 2px 0px #000;
+      background-color: #ffcb05;
+      color: #1a1a1a;
+      cursor: pointer;
+      transition: all 0.1s ease;
+
+      &:hover {
+        background-color: #ffffff;
+        transform: translate(-1px, -1px);
+        box-shadow: 3px 3px 0px #000;
+      }
+
+      &:active {
+        transform: translate(1px, 1px);
+        box-shadow: 0px 0px 0px #000;
+      }
     }
   }
 
@@ -342,8 +370,21 @@
 
   .list-container {
     flex: 1;
-    padding: 16px 14px;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .skeleton-container,
+    .empty-state {
+      flex: 1;
+      padding: 16px 14px;
+    }
+
+    .pokedex-virtual-viewport {
+      flex: 1;
+      padding: 0 14px;
+    }
   }
 
   /* CDK Virtual Viewport Styling */
@@ -400,8 +441,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #8bac0f;
-      border: 3px solid #0f380f;
+      background: #ffffff
+        url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/substitute.png')
+        center / 48px 48px no-repeat;
+      border: 3px solid #1a1a1a;
       border-radius: 6px;
       margin-right: 18px;
 
@@ -409,6 +452,8 @@
         width: 56px;
         height: 56px;
         image-rendering: pixelated;
+        object-fit: contain;
+        background: transparent;
       }
     }
 
@@ -425,8 +470,8 @@
       box-shadow: 4px 4px 0px #000;
       
       .icon-sprite-box {
-        background: #9bbc0f;
-        border-color: #0f380f;
+        background: #ffffff;
+        border-color: #1a1a1a;
       }
 
       .name, .num {
@@ -525,4 +570,234 @@
   align-items: center;
   justify-content: center;
   padding: 0 24px;
+}
+
+.generic-modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.generic-modal-content {
+  background: #f0f0f0;
+  border: 4px solid #1a1a1a;
+  border-radius: 8px;
+  padding: 24px;
+  width: 400px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+  color: #1a1a1a;
+
+  h2 {
+    color: #1a1a1a;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: #dc0a2d;
+    color: white;
+    border: 2px solid #1a1a1a;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+}
+
+.modal-text-input {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #1a1a1a;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 16px;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  background: #fff;
+}
+
+.modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+
+  &.scrollable {
+    overflow-y: auto;
+    max-height: 400px;
+    padding-right: 8px;
+  }
+}
+
+.modal-list-item {
+  padding: 12px;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-weight: bold;
+  color: #1a1a1a;
+
+  &:hover {
+    background: #e0e0e0;
+    border-color: #1a1a1a;
+  }
+  &.selected {
+    background: #d0d0d0;
+    border-color: #1a1a1a;
+    color: #000;
+  }
+
+  // Autofill top-match highlight
+  &.search-item-top {
+    border-color: #3b5bdb;
+    background: #eef2ff;
+    box-shadow: 0 0 0 2px rgba(59, 91, 219, 0.25);
+  }
+}
+
+.enter-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #3b5bdb;
+  background: #dbe4ff;
+  border: 1px solid #adb5d0;
+  border-radius: 4px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+.search-no-results {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+
+/* -- No-connection sticky banner -- */
+.no-signal-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #1a1a1a;
+  border-bottom: 2px solid #ff5555;
+  font-family: var(--font-game);
+  font-size: 8px;
+  flex-shrink: 0;
+
+  .no-signal-icon {
+    color: #ff5555;
+    font-size: 12px;
+    line-height: 1;
+    animation: blink-warn 1s step-start infinite;
+  }
+
+  .no-signal-msg {
+    color: #ff9999;
+    flex: 1;
+    letter-spacing: 0.5px;
+  }
+
+  .no-signal-retry {
+    background: transparent;
+    border: 1px solid #ff5555;
+    color: #ff5555;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: var(--font-game);
+    font-size: 10px;
+    line-height: 1;
+    border-radius: 2px;
+
+    &:hover {
+      background: #ff5555;
+      color: #fff;
+    }
+  }
+}
+
+@keyframes blink-warn {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* -- Empty state -- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Stats panel replaces the list � remove list padding */
+.list-container.stats-mode {
+  padding: 0;
+  overflow: hidden;
+
+  app-pokemon-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+  }
+}
+
+.sidebar-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+
+  .nav-btn-sidebar {
+    background: #1a1a1a;
+    border: 2px solid #555;
+    color: #ffcb05;
+    font-family: var(--font-game);
+    font-size: 9px;
+    padding: 6px 10px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
+    flex: 1;
+    margin-right: 5px;
+
+    &.right {
+      margin-right: 0;
+      margin-left: 5px;
+    }
+
+    &:hover:not(:disabled) {
+      background: #ffcb05;
+      color: #1a1a1a;
+      border-color: #1a1a1a;
+    }
+
+    &:disabled {
+      color: #555;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: translate(2px, 2px);
+    }
+  }
 }

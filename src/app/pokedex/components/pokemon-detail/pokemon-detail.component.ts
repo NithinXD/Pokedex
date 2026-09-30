@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgxEchartsModule } from 'ngx-echarts';
 import type { EChartsOption } from 'echarts';
-import { PokemonStore, PokemonState } from '../../state/pokemon.store';
+import { PokemonStore } from '../../state/pokemon.store';
+import { PokemonSelectors } from '../../state/pokemon.selectors';
+import { Pokemon } from '../../models/pokemon.model';
 
 @Component({
   selector: 'app-pokemon-detail',
@@ -18,40 +20,66 @@ export class PokemonDetailComponent {
 
   readonly state = toSignal(this.store.rawState$, { requireSync: true });
 
+  /** Full sorted+filtered list — same order the right panel uses */
+  readonly sortedList = toSignal(
+    PokemonSelectors.selectFilteredPokemon(this.store),
+    { initialValue: [] as Pokemon[] }
+  );
+
   readonly selectedPokemon = computed(() => this.state().detailPanelPokemon);
+
+  /** Index of current pokemon in the sorted list */
+  readonly currentIndex = computed(() => {
+    const p = this.selectedPokemon();
+    if (!p) return -1;
+    return this.sortedList().findIndex(x => x.id === p.id);
+  });
+
+  readonly prevPokemon = computed<Pokemon | null>(() => {
+    const i = this.currentIndex();
+    if (i <= 0) return null;
+    return this.sortedList()[i - 1] ?? null;
+  });
+
+  readonly nextPokemon = computed<Pokemon | null>(() => {
+    const list = this.sortedList();
+    const i = this.currentIndex();
+    if (i === -1 || i >= list.length - 1) return null;
+    return list[i + 1] ?? null;
+  });
 
   readonly chartOption = computed<EChartsOption>(() => {
     const pokemon = this.selectedPokemon();
     if (!pokemon) return {};
 
-    const mockStats = [
-      { name: 'HP', value: Math.floor(Math.random() * 60) + 40 },
-      { name: 'Attack', value: Math.floor(Math.random() * 80) + 40 },
-      { name: 'Defense', value: Math.floor(Math.random() * 80) + 30 },
-      { name: 'Sp. Atk', value: Math.floor(Math.random() * 90) + 50 },
-      { name: 'Sp. Def', value: Math.floor(Math.random() * 80) + 40 },
-      { name: 'Speed', value: Math.floor(Math.random() * 100) + 50 }
-    ];
+    const stats = pokemon.stats || [];
 
     return {
+      animationDurationUpdate: 300,
       radar: {
-        indicator: mockStats.map(s => ({ name: s.name, max: 150 })),
+        indicator: stats.map((s: any) => ({ name: s.name.toUpperCase(), max: 255 })),
         splitNumber: 4,
-        axisName: { color: '#666' }
+        axisName: { color: '#888', fontSize: 10 }
       },
       series: [{
         name: 'Stats',
         type: 'radar',
         data: [{
-          value: mockStats.map(s => s.value),
-          name: pokemon.name,
-          areaStyle: { color: 'rgba(239, 83, 80, 0.4)' },
-          lineStyle: { color: '#ef5350' },
-          itemStyle: { color: '#ef5350' }
+          value: stats.map((s: any) => s.value),
+          name: 'Base Stats',
+          areaStyle: { color: 'rgba(220, 10, 45, 0.25)' },
+          lineStyle: { color: '#dc0a2d' },
+          itemStyle: { color: '#dc0a2d' }
         }]
       }]
     };
   });
+
+  navigate(pokemon: Pokemon | null): void {
+    if (!pokemon) return;
+    this.store.openDetailPanel(pokemon);
+    this.store.selectPokemon(pokemon);
+  }
 
   closePanel(): void {
     this.store.openDetailPanel(null);

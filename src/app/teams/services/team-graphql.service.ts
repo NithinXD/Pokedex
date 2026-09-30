@@ -59,4 +59,23 @@ export class TeamApiService {
       })
     );
   }
+
+  deleteTeamMutation$(id: number): Observable<boolean> {
+    const mutation = `
+      mutation RemoveTeam($id: ID!) {
+        removeTeam(id: $id) {
+          id
+        }
+      }
+    `;
+    return this.http.post<any>(LOCAL_URL, {
+      query: mutation,
+      variables: { id }
+    }).pipe(
+      map(res => {
+        if (res.errors) throw new Error(res.errors[0]?.message || 'Failed to delete team');
+        return true;
+      })
+    );
+  }
 }

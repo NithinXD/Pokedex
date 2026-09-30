@@ -1,1 +1,50 @@
-<p>team-builder-form works!</p>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="team-builder-form">
+  <div class="form-group">
+    <label>Team Name</label>
+    <input type="text" formControlName="name" placeholder="e.g. Dream Team" class="retro-input" />
+    
+    @if (nameControl?.invalid && (nameControl?.dirty || nameControl?.touched)) {
+      <div class="error-msg">
+        @if (nameControl?.errors?.['required']) { <span>Name is required.</span> }
+        @if (nameControl?.errors?.['minlength']) { <span>Name must be at least 3 characters.</span> }
+        @if (nameControl?.errors?.['maxlength']) { <span>Name cannot exceed 30 characters.</span> }
+        @if (nameControl?.errors?.['unique']) { <span>Team name already exists!</span> }
+      </div>
+    }
+  </div>
+
+  <div class="form-group" style="position: relative;">
+    <label>Add Pok&eacute;mon ({{ selectedPokemon.length }}/6)</label>
+    <input type="text" formControlName="pokemonSearch" placeholder="Type to search..." class="retro-input" [attr.disabled]="selectedPokemon.length >= 6 ? true : null" />
+    
+    @if (searchResults.length > 0) {
+      <div class="autocomplete-dropdown scrollable">
+        @for (p of searchResults; track p.id) {
+          <div class="autocomplete-item" (click)="selectPokemon(p)">
+            <img [src]="get2dSpriteUrl(p.id)" width="32" height="32" />
+            <span>{{ p.name | uppercase }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="selected-chips">
+    @for (p of selectedPokemon; track p.id; let i = $index) {
+      <div class="chip">
+        <img [src]="get2dSpriteUrl(p.id)" width="24" height="24" />
+        <span>{{ p.name | uppercase }}</span>
+        <button type="button" class="remove-chip-btn" (click)="removePokemon(i)">X</button>
+      </div>
+    }
+  </div>
+
+  @if (selectedPokemon.length === 0 && (form.touched || form.dirty)) {
+    <div class="error-msg" style="margin-top: 8px;">Select at least 1 Pok&eacute;mon for your team.</div>
+  }
+
+  <div class="form-actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+    <button type="button" class="retro-btn-cancel" (click)="formClosed.emit()">Cancel</button>
+    <button type="submit" class="retro-btn-save" [disabled]="form.invalid || selectedPokemon.length < 1">Save Team</button>
+  </div>
+</form>

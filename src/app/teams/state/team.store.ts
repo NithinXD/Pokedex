@@ -1,11 +1,13 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, DestroyRef } from '@angular/core';
 import { BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TeamApiService } from '../services/team-graphql.service';
 import { Team } from '../models/team.model';
 
 @Injectable({ providedIn: 'root' })
 export class TeamStore {
   private readonly api = inject(TeamApiService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly teams$ = new BehaviorSubject<Team[]>([]);
   private readonly activeTeam$ = new BehaviorSubject<Team | null>(null);
 
@@ -24,7 +26,8 @@ export class TeamStore {
           this.activeTeam$.next(teams[0]);
         }
       }),
-      catchError(() => of([]))
+      catchError(() => of([])),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe();
   }
 
@@ -51,9 +54,10 @@ export class TeamStore {
         // 3. Rollback on failure
         this.teams$.next(previousSnapshot);
         this.activeTeam$.next(previousSnapshot[0] || null);
-        alert(`Failed to persist team: ${err.message}. Changes rolled back.`);
+        alert(`Connection lost. Could not save your team. Please check your network and try saving again.`);
         return of(null);
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe();
   }
 }

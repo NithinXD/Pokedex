@@ -1,22 +1,19 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+import { AudioService } from './common/services/audio.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-  isMenuOpen = signal(false);
+  private readonly audioService = inject(AudioService);
 
-  toggleMenu(): void {
-    this.isMenuOpen.update(v => !v);
-  }
-
-  closeMenu(): void {
-    this.isMenuOpen.set(false);
-  }
+  /** Exposed to template for CSS class binding */
+  readonly isPlaying = this.audioService.isPlaying;
 }

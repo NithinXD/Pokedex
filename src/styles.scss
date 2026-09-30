@@ -3,11 +3,11 @@
 :root {
   --font-game: 'Press Start 2P', monospace;
   --font-stat: 'VT323', monospace;
-  
+
   --color-pokedex-red: #dc0a2d;
   --color-pokedex-dark-red: #8b0000;
   --color-pokedex-blue: #28aafe;
-  --color-screen-bg: #8bac0f;
+  --color-screen-bg: #d0d0d0;
   --color-screen-dark: #0f380f;
   --color-screen-light: #9bbc0f;
   --color-screen-mid: #306230;
@@ -25,7 +25,8 @@
   font-family: var(--font-game) !important;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;

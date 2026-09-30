@@ -16,15 +16,19 @@ export class TeamDockComponent {
   readonly selectedTeamName = input<string>('Team 1');
   readonly allTeamNames = input<string[]>([]);
   readonly teamPokemon = input<(Pokemon | undefined)[]>([]); // Max 6
+  readonly teamTotalBaseStats = input<number>(0);
 
   readonly removePokemon = output<number>();
   readonly saveTeam = output<void>();
   readonly dropPokemon = output<{ pokemon: Pokemon, index: number }>();
-  readonly renameTeam = output<string>(); // Keep if needed for editing via another button, else remove
+  readonly renameTeam = output<string>(); // Used for actual rename if we pass string, but let's change to openRenameModal
+  readonly openRenameModal = output<void>();
   readonly selectTeam = output<string>();
   readonly createTeam = output<void>();
   readonly nextTeam = output<void>();
   readonly prevTeam = output<void>();
+  readonly openTeamList = output<void>();
+  readonly openSearch = output<number>();
 
   // Fixed 6-slot array for dock layout
   readonly slots = [0, 1, 2, 3, 4, 5];
@@ -35,10 +39,7 @@ export class TeamDockComponent {
   }
 
   editTeamName(): void {
-    const name = prompt('Enter new team name:', this.selectedTeamName());
-    if (name && name !== this.selectedTeamName()) {
-      this.renameTeam.emit(name);
-    }
+    this.openRenameModal.emit();
   }
 
   onDrop(event: CdkDragDrop<any>, index: number): void {

@@ -5,6 +5,8 @@
   align-items: center;
   justify-content: space-between;
   font-family: var(--font-game);
+  padding: 0 16px;
+  box-sizing: border-box;
 
   .team-label {
     font-size: 16px;
@@ -13,48 +15,62 @@
     text-shadow: 2px 2px 0px #1a1a1a;
     display: flex;
     align-items: center;
-    gap: 8px;
-
-    .team-select-hidden {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
+    gap: 6px;
+    cursor: pointer;
   }
 
-  .dock-controls {
+  // LEFT section: + button + team name
+  .dock-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  // CENTER section: arrows + slots — always centred
+  .dock-center {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
+    justify-content: center;
+  }
 
-    .add-team-btn {
-      background: #8bac0f;
-      border: 2px solid #0f380f;
-      color: #000;
-      border-radius: 4px;
-      width: 24px;
-      height: 24px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 1px 1px 0px rgba(0,0,0,0.5);
+  // RIGHT section: BST readout
+  .dock-right {
+    flex: 0 0 auto;
+    font-size: 10px;
+    color: #ffcb05;
+    text-shadow: 1px 1px 0px #000;
+    white-space: nowrap;
+  }
 
-      &:hover {
-        background: #9bbc0f;
-        transform: translateY(-1px);
-      }
-      &:active {
-        transform: translateY(1px);
-        box-shadow: none;
-      }
+  .add-team-btn {
+    background: transparent;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px);
+      box-shadow: none;
     }
   }
+
 
   .slots-container {
     display: flex;
@@ -68,19 +84,19 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background-color: #8bac0f;
-    border: 3px solid #0f380f;
+    background-color: #ffffff;
+    border: 3px solid #1a1a1a;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     cursor: pointer;
-    box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
 
     &.is-empty {
       background: #cccccc;
       border-color: #888888;
-      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
+      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2);
     }
 
     .dock-sprite {
@@ -88,9 +104,9 @@
       height: 50px;
       object-fit: contain;
     }
-    
+
     &:hover:not(.is-empty) {
-      background-color: #9bbc0f;
+      background-color: #e0e0e0;
       transform: translateY(-2px);
     }
   }
@@ -106,16 +122,21 @@
     &.left-arrow {
       border-width: 12px 16px 12px 0;
       border-color: transparent #1a1a1a transparent transparent;
+      margin-left: 16px;  // space between TEAM label and ◄
+      margin-right: 12px; // space between ◄ and first slot
     }
 
     &.right-arrow {
       border-width: 12px 0 12px 16px;
       border-color: transparent transparent transparent #1a1a1a;
+      margin-left: 12px;  // space between last slot and ►
+      margin-right: 16px; // space between ► and BST
     }
-    
+
     &:hover {
       opacity: 0.8;
     }
+
     &:active {
       transform: scale(0.9);
     }

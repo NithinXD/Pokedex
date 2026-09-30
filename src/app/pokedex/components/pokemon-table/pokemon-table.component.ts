@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -9,11 +9,13 @@ import { PokemonDetailComponent } from '../pokemon-detail/pokemon-detail.compone
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TeamDockComponent } from '../../../teams/components/team-dock/team-dock.component';
 import { TeamStore } from '../../../teams/state/team.store';
+import { TeamBuilderFormComponent } from '../../../teams/components/team-builder-form/team-builder-form.component';
+import { AudioService } from '../../../common/services/audio.service';
 
 @Component({
   selector: 'app-pokemon-table',
   standalone: true,
-  imports: [CommonModule, ScrollingModule, PokemonDetailComponent, DragDropModule, TeamDockComponent],
+  imports: [CommonModule, ScrollingModule, PokemonDetailComponent, DragDropModule, TeamDockComponent, TeamBuilderFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './pokemon-table.component.html',
   styleUrl: './pokemon-table.component.scss'
@@ -21,6 +23,7 @@ import { TeamStore } from '../../../teams/state/team.store';
 export class PokemonTableComponent {
   readonly store = inject(PokemonStore);
   readonly teamStore = inject(TeamStore);
+  private readonly audioService = inject(AudioService);
 
   readonly state = toSignal(this.store.rawState$, { requireSync: true });
 
@@ -30,14 +33,55 @@ export class PokemonTableComponent {
   
   readonly pokemonTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
 
+  /** True when the inline stats panel is visible (right screen) */
+  readonly detailPanelOpen = computed(() => !!this.state().detailPanelPokemon);
+
   readonly localTeams = signal<{name: string, pokemon: (Pokemon | undefined)[]}[]>([
     { name: 'Team 1', pokemon: new Array(6).fill(undefined) }
   ]);
   readonly activeTeamIndex = signal<number>(0);
   
+  readonly activeModal = signal<'search' | 'teamList' | 'createTeam' | 'renameTeam' | null>(null);
+  readonly activeSlotForSearch = signal<number | null>(null);
+  readonly modalInput = signal<string>('');
+  readonly modalSearchQuery = signal<string>('');
+
   readonly allTeamNames = computed(() => this.localTeams().map(t => t.name));
   readonly teamName = computed(() => this.localTeams()[this.activeTeamIndex()].name);
   readonly dockedTeam = computed(() => this.localTeams()[this.activeTeamIndex()].pokemon);
+
+  // Derived signal calculating the total base stats of the active team
+  readonly teamTotalBaseStats = computed(() => {
+    const pokes = this.dockedTeam();
+    return pokes.reduce((total, p) => {
+      if (!p || !p.stats) return total;
+      return total + p.stats.reduce((sum, stat) => sum + stat.value, 0);
+    }, 0);
+  });
+
+  readonly modalFilteredPokemon = computed(() => {
+    const q = this.modalSearchQuery().toLowerCase().trim();
+    if (!q) return this.pokemonList();
+    return this.pokemonList().filter(p => p.name.toLowerCase().includes(q) || p.id.toString() === q);
+  });
+
+  constructor() {
+    // 1. Initialize from localStorage
+    const savedIndex = localStorage.getItem('activeTeamIndex');
+    const savedTeams = localStorage.getItem('localTeams');
+    if (savedTeams) {
+      try {
+        this.localTeams.set(JSON.parse(savedTeams));
+        if (savedIndex) this.activeTeamIndex.set(Number(savedIndex));
+      } catch(e) {}
+    }
+
+    // 2. effect() to persist state reactively to localStorage
+    effect(() => {
+      localStorage.setItem('localTeams', JSON.stringify(this.localTeams()));
+      localStorage.setItem('activeTeamIndex', this.activeTeamIndex().toString());
+    });
+  }
 
   onDropPokemon(event: { pokemon: Pokemon, index: number }): void {
     const teams = [...this.localTeams()];
@@ -59,6 +103,10 @@ export class PokemonTableComponent {
     this.localTeams.set(teams);
   }
 
+  retryLoad(): void {
+    this.store.loadPokemonList();
+  }
+
   onSelectTeam(name: string): void {
     const idx = this.localTeams().findIndex(t => t.name === name);
     if (idx !== -1) {
@@ -74,14 +122,64 @@ export class PokemonTableComponent {
     this.localTeams.set(teams);
   }
 
-  onCreateTeam(): void {
-    const name = prompt('Enter new team name:');
-    if (name) {
+  openSearchModal(slotIndex: number): void {
+    this.activeSlotForSearch.set(slotIndex);
+    this.modalSearchQuery.set('');
+    this.activeModal.set('search');
+  }
+
+  openTeamListModal(): void {
+    this.activeModal.set('teamList');
+  }
+
+  openCreateTeamModal(): void {
+    this.modalInput.set('');
+    this.activeModal.set('createTeam');
+  }
+
+  openRenameTeamModal(): void {
+    this.modalInput.set(this.teamName());
+    this.activeModal.set('renameTeam');
+  }
+
+  closeModal(): void {
+    this.activeModal.set(null);
+    this.activeSlotForSearch.set(null);
+  }
+
+  submitModalInput(): void {
+    const val = this.modalInput().trim();
+    if (!val) return;
+    if (this.activeModal() === 'createTeam') {
       const teams = [...this.localTeams()];
-      teams.push({ name, pokemon: new Array(6).fill(undefined) });
+      teams.push({ name: val, pokemon: new Array(6).fill(undefined) });
       this.localTeams.set(teams);
       this.activeTeamIndex.set(teams.length - 1);
+    } else if (this.activeModal() === 'renameTeam') {
+      this.onRenameTeam(val);
     }
+    this.closeModal();
+  }
+
+  selectPokemonForSlot(pokemon: Pokemon): void {
+    const slot = this.activeSlotForSearch();
+    if (slot !== null) {
+      this.onDropPokemon({ pokemon, index: slot });
+    }
+    this.closeModal();
+  }
+
+  removePokemonFromSlot(): void {
+    const slot = this.activeSlotForSearch();
+    if (slot !== null) {
+      this.removePokemon(slot);
+    }
+    this.closeModal();
+  }
+  
+  selectTeamFromModal(name: string): void {
+    this.onSelectTeam(name);
+    this.closeModal();
   }
 
   onNextTeam(): void {
@@ -116,8 +214,34 @@ export class PokemonTableComponent {
     return this.state().selectedPokemon || this.pokemonList()[0] || null;
   }
 
+  get prevPokemon(): Pokemon | null {
+    const list = this.pokemonList();
+    const current = this.activePokemon;
+    if (!current) return null;
+    const index = list.findIndex(p => p.id === current.id);
+    return index > 0 ? list[index - 1] : null;
+  }
+
+  get nextPokemon(): Pokemon | null {
+    const list = this.pokemonList();
+    const current = this.activePokemon;
+    if (!current) return null;
+    const index = list.findIndex(p => p.id === current.id);
+    return index >= 0 && index < list.length - 1 ? list[index + 1] : null;
+  }
+
+  navigate(pokemon: Pokemon | null): void {
+    if (!pokemon) return;
+    this.selectPokemon(pokemon);
+    // If stats panel is open, keep it showing the newly selected pokemon
+    if (this.detailPanelOpen()) {
+      this.store.openDetailPanel(pokemon);
+    }
+  }
+
   selectPokemon(pokemon: Pokemon): void {
     this.store.selectPokemon(pokemon);
+    this.audioService.playCry(pokemon.id);
   }
 
   trackById(_index: number, pokemon: Pokemon): number {
@@ -155,7 +279,9 @@ export class PokemonTableComponent {
 
   openStatsModal(pokemon: Pokemon, event?: MouseEvent): void {
     if (event) event.stopPropagation();
-    this.store.openDetailPanel(pokemon);
+    // Toggle: if same pokemon already open, close it; otherwise open it
+    const current = this.state().detailPanelPokemon;
+    this.store.openDetailPanel(current?.id === pokemon.id ? null : pokemon);
   }
 
   getPokemonDescription(name: string): string {

@@ -39,15 +39,6 @@
             <option value="desc">Descending</option>
           </select>
         </div>
-
-        <div class="sidebar-nav">
-          <button class="nav-btn-sidebar" [disabled]="!prevPokemon" (click)="navigate(prevPokemon)">
-            &#x25C4; PREV
-          </button>
-          <button class="nav-btn-sidebar right" [disabled]="!nextPokemon" (click)="navigate(nextPokemon)">
-            NEXT &#x25BA;
-          </button>
-        </div>
       </div>
     </div>
     
@@ -65,11 +56,6 @@
         <span class="preview-name">
           {{ (activePokemon?.name || '---') | uppercase }}
         </span>
-        @if (activePokemon) {
-          <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
-            STATS
-          </button>
-        }
       </div>
 
       <div class="display-box">
@@ -82,6 +68,10 @@
             alt="Loading..." 
             class="pokemon-sprite-2d shimmer-sprite"
           >
+        } @else if (state().error) {
+          <div class="error-placeholder" style="color: red; font-family: 'Courier New', monospace; font-size: 24px; text-align: center; margin-top: 60px; font-weight: bold;">
+            ERROR_
+          </div>
         } @else {
           @if (activePokemon) {
             <!-- Type Badges Overlay -->
@@ -106,25 +96,27 @@
 
       <!-- Description Box with Manual View Base Stats Button -->
       <div class="description-box">
-
+        <div class="desc-header">
+          <span class="desc-title">Entry Details</span>
+          @if (activePokemon) {
+            <button class="retro-btn-stats" (click)="openStatsModal(activePokemon, $event)">
+              BASE STATS Radar Ã¢Ëœâ€¦
+            </button>
+          }
+        </div>
         <div class="desc-text">
           {{ getPokemonDescription(activePokemon?.name || '') }}
         </div>
       </div>
     </div>
 
-    <!-- Right Screen: Pokemon List OR Stats Panel -->
+    <!-- Right Screen: Scrollable Pokemon List -->
     <div class="right-screen">
       <div class="red-side-stripe"></div>
       
-      @if (detailPanelOpen()) {
-        <!-- Inline Stats Panel fills right screen when open -->
-        <div class="list-container stats-mode">
-          <app-pokemon-detail></app-pokemon-detail>
-        </div>
-      } @else {
       <div class="list-container">
-        @if (state().isLoading && pokemonList().length === 0) {
+        <!-- LOADING STATE, EMPTY STATE, SUCCESS STATE -->
+        @if (state().isLoading) {
           <div class="skeleton-container">
             @for (i of skeletonRows; track $index) {
               <div class="skeleton-row shimmer">
@@ -134,15 +126,13 @@
               </div>
             }
           </div>
-        <!-- NO-CONNECTION BANNER — non-blocking, list still shows below -->
-        @if (state().error) {
-          <div class="no-signal-banner">
-            <span class="no-signal-icon">&#x26A0;</span>
-            <span class="no-signal-msg">NO CONNECTION &mdash; SHOWING CACHED DATA</span>
-            <button class="no-signal-retry" (click)="retryLoad()">&#x21BA;</button>
+        } @else if (state().error) {
+          <div class="empty-state error-state" style="text-align: center; padding: 20px;">
+            <p style="color: #ff5555; margin-bottom: 10px;">{{ state().error }}</p>
+            <button class="retro-btn-stats" (click)="retryLoad()" style="background: #333; color: white;">
+              RETRY CONNECTION
+            </button>
           </div>
-        }
-
         } @else if (pokemonList().length === 0) {
           <div class="empty-state">
             <p>No PokÃƒÂ©mon found</p>
@@ -173,8 +163,7 @@
               <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
               
               <span class="icon-sprite-box">
-                <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
-                  (error)="$any($event.target).src = getGlitchSpriteUrl()">
+                <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name">
               </span>
               
               <span class="name">{{ pokemon.name | uppercase }}</span>
@@ -182,7 +171,6 @@
           </cdk-virtual-scroll-viewport>
         }
       </div>
-      } <!-- closes @else -->
     </div>
   </div> <!-- closes screens-container -->
   </div> <!-- closes main-content-area -->
@@ -229,32 +217,13 @@
       }
 
       @if (activeModal() === 'search') {
-        <h2 style="margin-top: 0;">Find Pok&#233;mon</h2>
-        <input
-          type="text"
-          autofocus
-          [value]="modalSearchQuery()"
-          (input)="modalSearchQuery.set($any($event).target.value)"
-          (keydown.enter)="modalFilteredPokemon().length > 0 && selectPokemonForSlot(modalFilteredPokemon()[0])"
-          (keydown.escape)="closeModal()"
-          placeholder="Name or ID..."
-          class="modal-text-input"
-        />
+        <h2 style="margin-top: 0;">Find PokÃ©mon</h2>
+        <input type="text" [value]="modalSearchQuery()" (input)="modalSearchQuery.set($any($event).target.value)" placeholder="Name or ID..." class="modal-text-input" />
         <div class="modal-list scrollable">
-          @if (modalFilteredPokemon().length === 0 && modalSearchQuery().length > 0) {
-            <div class="search-no-results">No Pok&#233;mon found</div>
-          }
-          @for (p of modalFilteredPokemon(); track p.id; let first = $first) {
-            <div
-              class="modal-list-item search-item"
-              [class.search-item-top]="first && modalSearchQuery().length > 0"
-              (click)="selectPokemonForSlot(p)"
-            >
+          @for (p of modalFilteredPokemon(); track p.id) {
+            <div class="modal-list-item search-item" (click)="selectPokemonForSlot(p)">
               <img [src]="get2dSpriteUrl(p.id)" width="40" height="40" />
               <span>#{{ p.id.toString().padStart(3, '0') }} {{ p.name | uppercase }}</span>
-              @if (first && modalSearchQuery().length > 0) {
-                <span class="enter-hint">&#x21B5; Enter</span>
-              }
             </div>
           }
         </div>
@@ -262,5 +231,8 @@
     </div>
   </div>
 }
+
+<!-- Base Stats Animated Radar Chart Modal -->
+<app-pokemon-detail></app-pokemon-detail>
 
 
