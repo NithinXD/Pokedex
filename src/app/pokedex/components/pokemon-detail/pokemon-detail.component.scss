@@ -4,22 +4,22 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.7);
   z-index: 1000;
-  backdrop-filter: blur(2px);
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 
 .pokemon-detail-panel {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 400px;
+  width: 440px;
   max-width: 100vw;
   height: 100vh;
-  background: white;
+  background: #dc0a2d;
+  border-left: 6px solid #1a1a1a;
   z-index: 1001;
-  box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+  box-shadow: -8px 0 0px #000;
   transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -33,26 +33,30 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 4px solid #8b0000;
+    background: #8b0000;
 
     h2 {
       margin: 0;
-      font-size: 1.5rem;
-      color: #333;
+      font-size: 1.1rem;
+      color: #ffcb05;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0px #000;
     }
 
     .btn-close {
-      background: none;
-      border: none;
-      font-size: 2rem;
+      background: #ffcb05;
+      border: 3px solid #1a1a1a;
+      box-shadow: 2px 2px 0px #000;
+      font-size: 1rem;
+      font-family: var(--font-game);
       line-height: 1;
-      color: #999;
+      color: #1a1a1a;
       cursor: pointer;
-      padding: 0 0.5rem;
-      transition: color 0.2s;
+      padding: 0.25rem 0.5rem;
 
       &:hover {
-        color: #333;
+        background: #ffffff;
       }
     }
   }
@@ -63,29 +67,40 @@
     flex: 1;
 
     .artwork-container {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 2rem;
+      background: #8bac0f;
+      border: 4px solid #0f380f;
+      box-shadow: 4px 4px 0px #000;
+      border-radius: 6px;
+      padding: 1.5rem;
       display: flex;
       justify-content: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
 
       .artwork {
-        max-width: 200px;
+        max-width: 180px;
         height: auto;
-        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2));
+        image-rendering: pixelated;
+        filter: drop-shadow(4px 4px 0px rgba(15, 56, 15, 0.5));
       }
     }
 
     .stats-container {
+      background: #2b2b2b;
+      border: 4px solid #1a1a1a;
+      box-shadow: 4px 4px 0px #000;
+      border-radius: 6px;
+      padding: 1rem;
+
       h3 {
         margin: 0 0 1rem 0;
-        font-size: 1.2rem;
-        color: #555;
+        font-size: 0.85rem;
+        color: #ffcb05;
+        text-transform: uppercase;
+        text-align: center;
       }
 
       .radar-chart {
-        height: 350px;
+        height: 320px;
         width: 100%;
       }
     }
