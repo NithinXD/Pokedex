@@ -22,13 +22,24 @@
 
       <div class="slots-container">
         @for (idx of slots; track idx) {
-          <div class="slot-circle" [class.is-empty]="!teamPokemon()[idx]" cdkDropList [id]="'dock-slot-' + idx"
+          <div class="slot-circle" [class.is-empty]="!teamPokemon()[idx]" [class.is-filled]="!!teamPokemon()[idx]" [class.is-hovered]="isSlotActiveHover(idx)"
+            cdkDropList [id]="'dock-slot-' + idx"
+            (cdkDropListEntered)="onDragEntered(idx)"
+            (cdkDropListExited)="onDragExited(idx)"
             (cdkDropListDropped)="onDrop($event, idx)"
+            (mouseenter)="onSlotMouseEnter(idx)"
+            (mouseleave)="onSlotMouseLeave(idx)"
             (click)="!teamPokemon()[idx] && openSearch.emit(idx)"
-            [title]="!teamPokemon()[idx] ? 'Click to search Pok\u00e9mon' : ''">
-            @if (teamPokemon()[idx]; as pokemon) {
-              <img [src]="getSpriteUrl(pokemon.id)" [alt]="pokemon.name" class="dock-sprite pixelated"
-                (click)="removePokemon.emit(idx)" title="Click to remove" />
+            [title]="!teamPokemon()[idx] ? 'Click to search Pok\u00e9mon' : (teamPokemon()[idx]?.name | uppercase)">
+            @if (isSlotActiveHover(idx)) {
+              <img src="assets/pokeopen.png" alt="Open Pokeball" class="slot-pokeball-icon open-pokeball pixelated" />
+            } @else {
+              @if (teamPokemon()[idx]; as pokemon) {
+                <img [src]="getSpriteUrl(pokemon.id)" [alt]="pokemon.name" class="dock-sprite pixelated"
+                  (click)="removePokemon.emit(idx); $event.stopPropagation()" title="Click to remove" />
+              } @else {
+                <img src="assets/pokeball.png" alt="Pokeball" class="slot-pokeball-icon pixelated" />
+              }
             }
           </div>
         }

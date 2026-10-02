@@ -14,49 +14,62 @@
   </div>
 
   <div class="form-group" style="position: relative;">
-    <label>Add Pok&eacute;mon ({{ selectedPokemon.length }}/6)</label>
-    <input type="text" formControlName="pokemonSearch" placeholder="Type to search..." class="retro-input" [attr.disabled]="selectedPokemon.length >= 6 ? true : null" />
-    @if (isSearchLoading) {
-      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #555;">
-        Loading...
+    <label>Starter Pok&eacute;mon (1/1)</label>
+    
+    @if (selectedStarter) {
+      <div class="starter-card">
+        <div class="starter-badge">STARTER</div>
+        <div class="starter-sprite-box">
+          <img [src]="get2dSpriteUrl(selectedStarter.id)" width="48" height="48"
+            class="starter-sprite"
+            [alt]="selectedStarter.name"
+            (error)="$any($event.target).src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/substitute.png'" />
+        </div>
+        <div class="starter-info">
+          <span class="starter-num">#{{ selectedStarter.id.toString().padStart(3, '0') }}</span>
+          <span class="starter-name">{{ selectedStarter.name | uppercase }}</span>
+          @if (selectedStarter.types) {
+            <div class="starter-types">
+              @for (t of selectedStarter.types; track t) {
+                <span class="type-pill" [attr.data-type]="t">{{ t }}</span>
+              }
+            </div>
+          }
+        </div>
+        <button type="button" class="change-starter-btn" (click)="removeStarter()" title="Change starter">CHANGE</button>
       </div>
-    } @else if (searchError) {
-      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #dc0a2d;">
-        {{ searchError }}
-        <button (click)="retrySearch()" class="retro-btn" style="margin-top: 4px; padding: 4px 8px; font-size: 8px;">Retry</button>
-      </div>
-    } @else if (hasSearched && searchResults.length === 0 && form.get('pokemonSearch')?.value) {
-      <div class="autocomplete-dropdown" style="padding: 8px; text-align: center; color: #555;">
-        No Pokémon found.
-      </div>
-    } @else if (searchResults.length > 0) {
-      <div class="autocomplete-dropdown scrollable">
-        @for (p of searchResults; track p.id) {
-          <div class="autocomplete-item" (click)="selectPokemon(p)">
-            <img [src]="get2dSpriteUrl(p.id)" width="32" height="32" />
-            <span>{{ p.name | uppercase }}</span>
-          </div>
-        }
-      </div>
+    } @else {
+      <input type="text"
+        formControlName="pokemonSearch"
+        (input)="onSearchInput($event)"
+        placeholder="Search starter (e.g. Charmander, Pikachu, #001)..."
+        class="retro-input"
+        autocomplete="off" />
+
+      @if (searchInput().trim() && searchResults().length === 0) {
+        <div class="autocomplete-dropdown" style="padding: 10px; text-align: center; color: #555; font-size: 11px;">
+          No Pok&eacute;mon found.
+        </div>
+      } @else if (searchResults().length > 0) {
+        <div class="autocomplete-dropdown scrollable">
+          @for (p of searchResults(); track p.id) {
+            <div class="autocomplete-item" (click)="selectStarter(p)">
+              <img [src]="get2dSpriteUrl(p.id)" width="32" height="32" />
+              <span class="item-num">#{{ p.id.toString().padStart(3, '0') }}</span>
+              <span class="item-name">{{ p.name | uppercase }}</span>
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 
-  <div class="selected-chips">
-    @for (p of selectedPokemon; track p.id; let i = $index) {
-      <div class="chip">
-        <img [src]="get2dSpriteUrl(p.id)" width="24" height="24" />
-        <span>{{ p.name | uppercase }}</span>
-        <button type="button" class="remove-chip-btn" (click)="removePokemon(i)">X</button>
-      </div>
-    }
-  </div>
-
-  @if (selectedPokemon.length === 0 && (form.touched || form.dirty)) {
-    <div class="error-msg" style="margin-top: 8px;">Select at least 1 Pok&eacute;mon for your team.</div>
+  @if (!selectedStarter && (form.touched || form.dirty)) {
+    <div class="error-msg" style="margin-top: 4px;">Select 1 starter Pok&eacute;mon for your team.</div>
   }
 
   <div class="form-actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
     <button type="button" class="retro-btn-cancel" (click)="formClosed.emit()">Cancel</button>
-    <button type="submit" class="retro-btn-save" [disabled]="form.invalid || selectedPokemon.length < 1">Save Team</button>
+    <button type="submit" class="retro-btn-save" [disabled]="form.invalid || !selectedStarter">Save Team</button>
   </div>
 </form>

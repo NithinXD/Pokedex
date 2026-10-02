@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Pokemon } from '../../../pokedex/models/pokemon.model';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
@@ -23,7 +23,7 @@ export class TeamDockComponent {
   readonly removePokemon = output<number>();
   readonly saveTeam = output<void>();
   readonly dropPokemon = output<{ pokemon: Pokemon, index: number }>();
-  readonly renameTeam = output<string>(); // Used for actual rename if we pass string, but let's change to openRenameModal
+  readonly renameTeam = output<string>();
   readonly openRenameModal = output<void>();
   readonly selectTeam = output<string>();
   readonly createTeam = output<void>();
@@ -36,6 +36,34 @@ export class TeamDockComponent {
   // Fixed 6-slot array for dock layout
   readonly slots = [0, 1, 2, 3, 4, 5];
 
+  readonly activeSlotHover = signal<number | null>(null);
+
+  onDragEntered(index: number): void {
+    this.activeSlotHover.set(index);
+  }
+
+  onDragExited(index: number): void {
+    if (this.activeSlotHover() === index) {
+      this.activeSlotHover.set(null);
+    }
+  }
+
+  onSlotMouseEnter(index: number): void {
+    if (!this.teamPokemon()[index]) {
+      this.activeSlotHover.set(index);
+    }
+  }
+
+  onSlotMouseLeave(index: number): void {
+    if (this.activeSlotHover() === index) {
+      this.activeSlotHover.set(null);
+    }
+  }
+
+  isSlotActiveHover(index: number): boolean {
+    return this.activeSlotHover() === index;
+  }
+
   onTeamSelect(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectTeam.emit(select.value);
@@ -46,6 +74,7 @@ export class TeamDockComponent {
   }
 
   onDrop(event: CdkDragDrop<any>, index: number): void {
+    this.activeSlotHover.set(null);
     if (event.previousContainer !== event.container) {
       const pokemon = event.item.data as Pokemon;
       this.dropPokemon.emit({ pokemon, index });

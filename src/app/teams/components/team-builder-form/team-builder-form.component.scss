@@ -51,56 +51,174 @@
   background: #ffffff;
   border: 3px solid #1a1a1a;
   border-top: none;
-  max-height: 150px;
+  max-height: 180px;
   overflow-y: auto;
-  z-index: 10;
+  z-index: 20;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
 
   .autocomplete-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
+    padding: 6px 10px;
     cursor: pointer;
+    border-bottom: 1px solid #eee;
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     &:hover {
-      background: #f0f0f0;
+      background: #ffcb05;
+      color: #1a1a1a;
+    }
+
+    .item-num {
+      font-size: 10px;
+      color: #666;
+      width: 38px;
+    }
+
+    .item-name {
+      font-size: 12px;
+      font-weight: bold;
     }
   }
 }
 
-.selected-chips {
+.starter-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 3px solid #1a1a1a;
+  border-radius: 6px;
+  padding: 10px 12px;
+  position: relative;
+  box-shadow: 2px 2px 0px #000;
 
-  .chip {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  .starter-badge {
+    position: absolute;
+    top: -9px;
+    left: 12px;
     background: #ffcb05;
-    border: 2px solid #1a1a1a;
-    border-radius: 16px;
-    padding: 2px 8px 2px 2px;
-    font-size: 12px;
     color: #1a1a1a;
+    border: 2px solid #1a1a1a;
+    font-size: 8px;
+    padding: 1px 6px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
 
-    .remove-chip-btn {
-      background: #dc0a2d;
-      color: #fff;
-      border: 1px solid #1a1a1a;
-      border-radius: 50%;
-      width: 16px;
-      height: 16px;
-      font-size: 10px;
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      margin-left: 4px;
+  .starter-sprite-box {
+    width: 54px;
+    height: 54px;
+    background: #fff;
+    border: 2px solid #1a1a1a;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+
+    .starter-sprite {
+      image-rendering: pixelated;
+      object-fit: contain;
     }
+  }
+
+  .starter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+
+    .starter-num {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .starter-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+
+    .starter-types {
+      display: flex;
+      gap: 4px;
+
+      .type-pill {
+        font-size: 7px;
+        padding: 2px 5px;
+        border-radius: 3px;
+        color: #fff;
+        text-transform: uppercase;
+        background: #888;
+
+        &[data-type="grass"] { background: #78C850; }
+        &[data-type="poison"] { background: #A040A0; }
+        &[data-type="fire"] { background: #F08030; }
+        &[data-type="flying"] { background: #A890F0; }
+        &[data-type="water"] { background: #6890F0; }
+        &[data-type="bug"] { background: #A8B820; }
+        &[data-type="normal"] { background: #A8A878; }
+        &[data-type="electric"] { background: #F8D030; color: #1a1a1a; }
+        &[data-type="ground"] { background: #E0C068; }
+        &[data-type="fairy"] { background: #EE99AC; }
+        &[data-type="fighting"] { background: #C03028; }
+        &[data-type="psychic"] { background: #F85888; }
+        &[data-type="rock"] { background: #B8A038; }
+        &[data-type="steel"] { background: #B8B8D0; }
+        &[data-type="ice"] { background: #98D8D8; }
+        &[data-type="ghost"] { background: #705898; }
+        &[data-type="dragon"] { background: #7038F8; }
+        &[data-type="dark"] { background: #705848; }
+      }
+    }
+  }
+
+  .change-starter-btn {
+    background: #dc0a2d;
+    color: #fff;
+    border: 2px solid #1a1a1a;
+    font-size: 9px;
+    font-family: inherit;
+    padding: 6px 10px;
+    cursor: pointer;
+    box-shadow: 1px 1px 0px #000;
+
+    &:hover {
+      background: #b30000;
+    }
+  }
+}
+
+.pokeball-placeholder {
+  image-rendering: pixelated;
+  object-fit: contain;
+  animation: pokeball-wobble 1.2s ease-in-out infinite;
+}
+
+.hidden-sprite {
+  opacity: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+@keyframes pokeball-wobble {
+  0%, 100% {
+    transform: rotate(0deg) scale(0.95);
+  }
+  25% {
+    transform: rotate(-10deg) scale(1.03);
+  }
+  50% {
+    transform: rotate(0deg) scale(0.98);
+  }
+  75% {
+    transform: rotate(10deg) scale(1.03);
   }
 }
 

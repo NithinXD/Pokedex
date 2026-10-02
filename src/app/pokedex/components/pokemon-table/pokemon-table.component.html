@@ -93,7 +93,6 @@
             [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
             [cdkDropListSortingDisabled]="true">
             <div class="grid-background"></div>
-            <div class="pokeball-bg"></div>
 
             @if (state().isLoading) {
             <img [src]="getGlitchSpriteUrl()" alt="Loading..." class="pokemon-sprite-2d shimmer-sprite">
@@ -167,6 +166,7 @@
             <div class="grid-view-container"
               style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 16px; background: #e0f8d0; border: 4px solid #8ba37a; border-radius: 8px; height: 500px; overflow-y: auto; align-content: start;"
               cdkDropList
+              [cdkDropListAutoScrollDisabled]="true"
               [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
               [cdkDropListSortingDisabled]="true">
               @for (pokemon of paginatedPokemonList(); track pokemon.id) {
@@ -176,15 +176,20 @@
                 <!-- Explicit Preview -->
                 <ng-template cdkDragPreview [matchSize]="true">
                   <div class="pc-grid-item"
-                    style="width: 64px; height: 64px; background: rgba(255,255,255,0.9); border: 2px solid #8ba37a; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <img [src]="get2dSpriteUrl(pokemon.id)" style="width: 48px; height: 48px;">
+                    style="width: 64px; height: 64px; background: rgba(255,255,255,0.9); border: 2px solid #8ba37a; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                    <img src="assets/pokeball.png" class="pokeball-placeholder grid-placeholder" alt="Loading..."
+                      [class.hidden-sprite]="previewImgRef?.complete">
+                    <img #previewImgRef [src]="get2dSpriteUrl(pokemon.id)" style="width: 48px; height: 48px;" 
+                      [class.hidden-sprite]="!previewImgRef?.complete" (load)="0">
                   </div>
                 </ng-template>
-                <img [src]="get2dSpriteUrl(pokemon.id)" [alt]="pokemon.name"
+                <img src="assets/pokeball.png" class="pokeball-placeholder grid-placeholder" alt="Loading..."
+                  [class.hidden-sprite]="gridImgRef?.complete">
+                <img #gridImgRef [src]="get2dSpriteUrl(pokemon.id)" [alt]="pokemon.name"
                   style="width: 48px; height: 48px; position: relative; z-index: 2;"
-                  (error)="$any($event.target).src = getGlitchSpriteUrl()">
-                <span style="font-size: 8px; font-family: var(--font-game); text-transform: uppercase;">{{ pokemon.name
-                  | slice:0:8 }}</span>
+                  [class.hidden-sprite]="!gridImgRef?.complete"
+                  (load)="0"
+                  (error)="onImageError($event, pokemon.id)">
               </div>
               }
             </div>
@@ -204,6 +209,7 @@
             } @else {
             <cdk-virtual-scroll-viewport itemSize="96" minBufferPx="200" maxBufferPx="400"
               class="pokedex-virtual-viewport" #listContainer cdkDropList
+              [cdkDropListAutoScrollDisabled]="true"
               [cdkDropListConnectedTo]="['dock-slot-0', 'dock-slot-1', 'dock-slot-2', 'dock-slot-3', 'dock-slot-4', 'dock-slot-5']"
               [cdkDropListSortingDisabled]="true">
               <div *cdkVirtualFor="let pokemon of pokemonList(); trackBy: trackById" class="list-row"
@@ -214,12 +220,16 @@
                     style="overflow: hidden !important; margin: 0; padding: 12px 14px; box-sizing: border-box; width: 100%;">
                     <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
                     <span class="icon-sprite-box">
-                      <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
-                        (load)="$any($event.target).setAttribute('data-loaded', 'true')">
+                      <img src="assets/pokeball.png" class="pokeball-placeholder" alt="Loading..."
+                        [class.hidden-sprite]="previewListImgRef?.complete">
+                      <img #previewListImgRef [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon"
+                        [class.hidden-sprite]="!previewListImgRef?.complete"
+                        [alt]="pokemon.name"
+                        (load)="0">
                     </span>
                     <div class="name" style="display: flex; flex-direction: column;">
                       {{ pokemon.name | uppercase }}
-                      <div style="font-size: 5px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
+                      <div style="font-size: 7px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
                         <span>HP:{{ getStat(pokemon, 'hp') }}</span>
                         <span>ATK:{{ getStat(pokemon, 'attack') }}</span>
                         <span>DEF:{{ getStat(pokemon, 'defense') }}</span>
@@ -235,14 +245,18 @@
                 <span class="num">{{ pokemon.id.toString().padStart(3, '0') }}</span>
 
                 <span class="icon-sprite-box">
-                  <img [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon" [alt]="pokemon.name"
-                    (load)="$any($event.target).setAttribute('data-loaded', 'true')"
-                    (error)="$any($event.target).src = getGlitchSpriteUrl()">
+                  <img src="assets/pokeball.png" class="pokeball-placeholder" alt="Loading..."
+                    [class.hidden-sprite]="listImgRef?.complete">
+                  <img #listImgRef [src]="get2dSpriteUrl(pokemon.id)" class="mini-icon"
+                    [class.hidden-sprite]="!listImgRef?.complete"
+                    [alt]="pokemon.name"
+                    (load)="0"
+                    (error)="onImageError($event, pokemon.id)">
                 </span>
 
                 <div class="name" style="display: flex; flex-direction: column;">
                   {{ pokemon.name | uppercase }}
-                  <div style="font-size: 5px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
+                  <div style="font-size: 7px; display: flex; gap: 4px; margin-top: 4px; color: #555;">
                     <span>HP:{{ getStat(pokemon, 'hp') }}</span>
                     <span>ATK:{{ getStat(pokemon, 'attack') }}</span>
                     <span>DEF:{{ getStat(pokemon, 'defense') }}</span>
@@ -340,7 +354,7 @@
 
     @if (activeModal() === 'createTeam') {
       <h2 style="margin-top: 0;">Create New Team</h2>
-      <app-team-builder-form (formClosed)="closeModal()"></app-team-builder-form>
+      <app-team-builder-form (teamCreated)="onTeamCreated($event)" (formClosed)="closeModal()"></app-team-builder-form>
     }
 
     @if (activeModal() === 'renameTeam') {

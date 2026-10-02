@@ -39,8 +39,8 @@ export class TeamApiService {
 
   createTeamMutation$(team: Omit<Team, 'id'>): Observable<Team> {
     const mutation = `
-      mutation CreateTeam($name: String!, $trainer_id: Int!, $pokemon_ids: [Int!]!) {
-        createTeam(name: $name, trainer_id: $trainer_id, pokemon_ids: $pokemon_ids) {
+      mutation CreateTeam($name: String!, $trainer_id: ID!, $pokemon_ids: [Int!]!, $created_at: String!) {
+        createTeam(name: $name, trainer_id: $trainer_id, pokemon_ids: $pokemon_ids, created_at: $created_at) {
           id name trainer_id pokemon_ids created_at
         }
       }
@@ -49,8 +49,9 @@ export class TeamApiService {
       query: mutation,
       variables: {
         name: team.name,
-        trainer_id: team.trainer_id,
-        pokemon_ids: team.pokemon_ids
+        trainer_id: team.trainer_id.toString(), // ID types are often strings in GraphQL
+        pokemon_ids: team.pokemon_ids,
+        created_at: team.created_at || new Date().toISOString()
       }
     }).pipe(
       map(res => {

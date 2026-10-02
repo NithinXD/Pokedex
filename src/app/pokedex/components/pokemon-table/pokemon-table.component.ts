@@ -12,6 +12,8 @@ import { TeamStore } from '../../../teams/state/team.store';
 import { TeamBuilderFormComponent } from '../../../teams/components/team-builder-form/team-builder-form.component';
 import { AudioService } from '../../../common/services/audio.service';
 
+const globalLoadedPokemonImages = new Set<number>();
+
 @Component({
   selector: 'app-pokemon-table',
   standalone: true,
@@ -168,6 +170,16 @@ export class PokemonTableComponent {
     this.activeModal.set('createTeam');
   }
 
+  onTeamCreated(event: { name: string, starter: Pokemon }): void {
+    const teams = [...this.localTeams()];
+    const slots = new Array(6).fill(undefined);
+    slots[0] = event.starter;
+    teams.push({ name: event.name, pokemon: slots });
+    this.localTeams.set(teams);
+    this.activeTeamIndex.set(teams.length - 1);
+    this.closeModal();
+  }
+
   openRenameTeamModal(): void {
     this.modalInput.set(this.teamName());
     this.activeModal.set('renameTeam');
@@ -233,7 +245,8 @@ export class PokemonTableComponent {
     this.teamStore.addTeamOptimistic({
       name: active.name,
       trainer_id: 1,
-      pokemon_ids: active.pokemon.filter(p => !!p).map(p => p!.id)
+      pokemon_ids: active.pokemon.filter(p => !!p).map(p => p!.id),
+      created_at: new Date().toISOString()
     });
     // Clear local dock
     const teams = [...this.localTeams()];
@@ -286,6 +299,29 @@ export class PokemonTableComponent {
   getGlitchSpriteUrl(): string {
     // MissingNo substitute sprite
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/substitute.png`;
+  }
+
+  getPokeballPlaceholderUrl(): string {
+    return 'assets/pokeball.png';
+  }
+
+  readonly loadedImages = signal<Set<number>>(globalLoadedPokemonImages);
+
+  isImageLoaded(id: number): boolean {
+    return this.loadedImages().has(id);
+  }
+
+  markImageLoaded(id: number): void {
+    if (!globalLoadedPokemonImages.has(id)) {
+      globalLoadedPokemonImages.add(id);
+      this.loadedImages.set(new Set(globalLoadedPokemonImages));
+    }
+  }
+
+  onImageError(event: Event, id: number): void {
+    const target = event.target as HTMLImageElement;
+    target.src = this.getGlitchSpriteUrl();
+    this.markImageLoaded(id);
   }
   
   onSearch(event: Event): void {

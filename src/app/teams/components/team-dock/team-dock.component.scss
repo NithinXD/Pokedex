@@ -1,4 +1,4 @@
-﻿.team-dock-bar {
+.team-dock-bar {
   height: 100%;
   width: 100%;
   display: flex;
@@ -91,12 +91,36 @@
     justify-content: center;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
     box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 
     &.is-empty {
-      background: #cccccc;
-      border-color: #888888;
-      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+      background: #ffffff;
+      border-color: #1a1a1a;
+      box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+
+      &.is-hovered {
+        background: #fffdf0;
+        border-color: #ffcb05;
+        box-shadow: 0 0 14px rgba(255, 203, 5, 0.85), 2px 2px 0px #000;
+        transform: scale(1.1);
+      }
+    }
+
+    &.is-filled {
+      background: #ffffff;
+      border-color: #1a1a1a;
+
+      &:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+      }
+
+      &.is-hovered {
+        border-color: #ffcb05;
+        box-shadow: 0 0 14px rgba(255, 203, 5, 0.85), 2px 2px 0px #000;
+      }
     }
 
     .dock-sprite {
@@ -105,9 +129,26 @@
       object-fit: contain;
     }
 
-    &:hover:not(.is-empty) {
-      background-color: #e0e0e0;
-      transform: translateY(-2px);
+    .slot-pokeball-icon {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      transition: transform 0.15s ease;
+      position: relative;
+      z-index: 2;
+
+      &.open-pokeball {
+        width: 44px;
+        height: 44px;
+        animation: pokeopen-bounce 0.8s ease-in-out infinite;
+      }
+    }
+
+    /* Hide the CDK Drag Placeholder so it doesn't overlap the open pokeball */
+    ::ng-deep &.cdk-drop-list .cdk-drag-placeholder {
+      display: none !important;
+      opacity: 0 !important;
     }
   }
 
@@ -157,5 +198,29 @@
 
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes pokeopen-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08) translateY(-2px);
+  }
+}
+
+@keyframes pokemon-pop-in {
+  0% {
+    transform: scale(0) rotate(-15deg);
+    opacity: 0;
+  }
+  65% {
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 
